@@ -1,17 +1,132 @@
 'use client';
-import React, { useState } from 'react';
-import { socialLinks } from '../../lib/data';
-import { Radio, Mail, Copy, Check, Instagram, Github, Globe } from 'lucide-react';
-
-const ICON_MAP = {
-  Instagram,
-  Github,
-  Globe,
-  Mail
-};
+import React, { useEffect, useState } from 'react';
+import { socialLinks as seedLinks } from '../../lib/data';
+import Icon from '../../components/Icon';
+import { Radio, Mail, Copy, Check, MessageCircle, Send, LogOut, Eye, EyeOff, X } from 'lucide-react';
 
 export default function ConnectPage() {
   const [emailCopied, setEmailCopied] = useState(false);
+  const [links, setLinks] = useState(seedLinks);
+
+  // Chat state
+  const [chatUser, setChatUser] = useState(null);
+  const [chatChecking, setChatChecking] = useState(true);
+  const [authMode, setAuthMode] = useState('login');
+  const [authForm, setAuthForm] = useState({ username: '', password: '', remember: true });
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const chatBodyRef = React.useRef(null);
+
+  useEffect(() => {
+    async function loadLinks() {
+      try {
+        const res = await fetch('/api/site-info');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data?.data?.socialLinks) && data.data.socialLinks.length > 0) {
+          setLinks(data.data.socialLinks);
+        }
+      } catch (_err) {
+        // fall back to seed links
+      }
+    }
+    loadLinks();
+  }, []);
+
+  // Chat: check session, then poll messages
+  useEffect(() => {
+    let poll;
+    async function check() {
+      try {
+        const res = await fetch('/api/chat/auth');
+        const data = await res.json();
+        setChatUser(data.user || null);
+      } catch (_err) {
+        setChatUser(null);
+      } finally {
+        setChatChecking(false);
+      }
+    }
+    check();
+    poll = setInterval(async () => {
+      try {
+        const res = await fetch('/api/chat/messages');
+        if (res.ok) {
+          const data = await res.json();
+          setMessages(data.messages || []);
+        }
+      } catch (_err) { /* ignore */ }
+    }, 4000);
+    return () => clearInterval(poll);
+  }, []);
+
+  useEffect(() => {
+    if (chatUser) {
+      fetch('/api/chat/messages')
+        .then(r => r.ok ? r.json() : { messages: [] })
+        .then(d => setMessages(d.messages || []))
+        .catch(() => {});
+    } else {
+      setMessages([]);
+    }
+  }, [chatUser]);
+
+  useEffect(() => {
+    if (chatBodyRef.current) chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+  }, [messages]);
+
+  const handleChatAuth = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      const res = await fetch('/api/chat/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: authMode,
+          username: authForm.username,
+          password: authForm.password,
+          remember: authForm.remember
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      setChatUser(data.user);
+      setAuthForm({ username: '', password: '', remember: true });
+    } catch (err) {
+      setAuthError(err.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/chat/auth', { method: 'DELETE' });
+    setChatUser(null);
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    const text = draft.trim();
+    if (!text || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send.');
+      setMessages(prev => [...prev, data.message]);
+      setDraft('');
+    } catch (err) {
+      setAuthError(err.message);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const copyEmail = async () => {
     try {
@@ -24,45 +139,160 @@ export default function ConnectPage() {
   };
 
   return (
-    <section className="connect" aria-labelledby="connect-title">
-      <div className="connect-orbit" aria-hidden="true">
-        <Radio size={20} />
+    <div className="connect-wrapper">
+      <div className="connect-header" style={{ marginBottom: '28px' }}>
+        <p className="section-label">07 / Contact &amp; Connect</p>
+        <h2 id="connect-title" style={{ margin: '0 0 8px', font: '700 clamp(24px, 3.5vw, 34px) / 1.15 Sora, sans-serif', color: 'var(--ink)' }}>
+          Let us build something impactful.
+        </h2>
+        <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', lineHeight: 1.6, maxWidth: '640px' }}>
+          Available for frontend engineering opportunities, contract work, open-source initiatives, and technical consulting.
+        </p>
       </div>
-      <div className="connect-copy">
-        <p className="section-label">Let us connect</p>
-        <h2 id="connect-title">Let us build something useful.</h2>
-        <p>I am open to junior frontend opportunities, internships, open-source work, and thoughtful collaborations.</p>
-        <div className="connect-actions">
-          <a className="email-action" href="mailto:giridirghraj@gmail.com">
-            <Mail size={13} /> Send an email
-          </a>
-          <button className="copy-email" type="button" onClick={copyEmail}>
-            {emailCopied ? (
-              <><Check size={13} style={{ color: 'var(--accent)' }} /> Email copied</>
-            ) : (
-              <><Copy size={13} /> Copy email</>
-            )}
-          </button>
+
+      {/* ─── Direct Messages Chatbox (Placed Above) ─── */}
+      <div className="chat-panel" style={{ marginBottom: '40px' }}>
+        <div className="chat-head">
+          <MessageCircle size={16} />
+          Direct Messages with DRJ
+          {chatUser && (
+            <button type="button" onClick={handleLogout}><LogOut size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: '-2px' }} />{chatUser.username} · Log out</button>
+          )}
         </div>
+
+        {chatChecking ? (
+          <div className="chat-auth"><p className="chat-hint">Checking session status…</p></div>
+        ) : !chatUser ? (
+          <form className="chat-auth" onSubmit={handleChatAuth}>
+            <p className="chat-hint">
+              <strong>Direct Communication Channel:</strong> Authenticate or register an account to initiate a direct message thread. Messages are securely stored and monitored directly by DRJ.
+            </p>
+            {authError && <div className="chat-error">{authError}</div>}
+            <input
+              type="text"
+              placeholder="Username (3–20 letters/numbers)"
+              value={authForm.username}
+              onChange={e => setAuthForm({ ...authForm, username: e.target.value })}
+              required
+              autoComplete="username"
+            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password (min 6 characters)"
+                value={authForm.password}
+                onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                required
+                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword(s => !s)}
+                style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', padding: '6px' }}
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+            <div className="chat-auth-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={authForm.remember}
+                  onChange={e => setAuthForm({ ...authForm, remember: e.target.checked })}
+                />
+                Remember me for 30 days
+              </label>
+              <span className="chat-hint" style={{ font: '600 11px "Space Grotesk", sans-serif' }}>
+                {authMode === 'login' ? 'New here?' : 'Already have an account?'}
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode(m => m === 'login' ? 'register' : 'login'); setAuthError(''); }}
+                  style={{ color: 'var(--accent)', fontWeight: 800, marginLeft: '6px' }}
+                >
+                  {authMode === 'login' ? 'Create one' : 'Log in'}
+                </button>
+              </span>
+            </div>
+            <div className="chat-auth-actions">
+              <button type="submit" className="button">
+                {authMode === 'login' ? <><MessageCircle size={13} /> Log in to chat</> : <><MessageCircle size={13} /> Create account &amp; chat</>}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="chat-body" ref={chatBodyRef}>
+              {messages.length === 0 && (
+                <p className="chat-hint" style={{ margin: 'auto' }}>Say hi — DRJ will get back to you here.</p>
+              )}
+              {messages.map((m, idx) => (
+                <div className={`chat-bubble ${m.from === 'user' ? 'me' : 'them'}`} key={idx}>
+                  {m.text}
+                  <span className="chat-time">
+                    {m.from === 'admin' ? 'DRJ · ' : ''}
+                    {new Date(m.at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <form className="chat-form" onSubmit={handleSend}>
+              <input
+                type="text"
+                placeholder="Type a message…"
+                value={draft}
+                onChange={e => setDraft(e.target.value)}
+                maxLength={2000}
+              />
+              <button type="submit" disabled={sending || !draft.trim()}>
+                <Send size={13} /> Send
+              </button>
+            </form>
+          </>
+        )}
       </div>
-      <div className="socials" aria-label="Social links">
-        {socialLinks.map(({ name, url, icon }) => {
-          const IconComp = ICON_MAP[icon] || Globe;
-          return (
+
+      {/* ─── Direct Email & Social Channels (Below) ─── */}
+      <section className="connect" aria-labelledby="connect-subhead">
+        <div className="connect-orbit" aria-hidden="true">
+          <Radio size={20} />
+        </div>
+        <div className="connect-copy">
+          <p className="section-label">Direct Contact</p>
+          <h3 id="connect-subhead" style={{ margin: '0 0 6px', font: '700 20px Sora, sans-serif', color: 'var(--ink)' }}>
+            Email &amp; Messaging
+          </h3>
+          <p>Prefer direct email? Send a message or copy my address to get in touch directly.</p>
+          <div className="connect-actions">
+            <a className="email-action" href="mailto:giridirghraj@gmail.com">
+              <Mail size={13} /> Send an email
+            </a>
+            <button className="copy-email" type="button" onClick={copyEmail}>
+              {emailCopied ? (
+                <><Check size={13} style={{ color: 'var(--accent)' }} /> Email copied</>
+              ) : (
+                <><Copy size={13} /> Copy email</>
+              )}
+            </button>
+          </div>
+        </div>
+        <div className="socials" aria-label="Social links">
+          {links.map(({ name, url, icon }) => (
             <a
               className="social"
               href={url}
               aria-label={name}
               title={name}
-              key={name}
-              {...(url.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+              key={name || url}
+              {...(url && url.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
             >
-              <IconComp size={14} />
+              <Icon name={icon} size={14} />
               <span>{name}</span>
             </a>
-          );
-        })}
-      </div>
-    </section>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
