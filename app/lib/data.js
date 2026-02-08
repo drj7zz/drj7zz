@@ -1,6 +1,8 @@
 export const socialLinks = [
-  { name: 'Instagram', url: 'https://www.instagram.com/drj7zz', icon: 'Instagram' },
+  { name: 'LinkedIn', url: 'https://www.linkedin.com/in/dirghraj-giri', icon: 'Linkedin' },
+  { name: 'Instagram', url: 'https://www.instagram.com/drj1zz', icon: 'Instagram' },
   { name: 'GitHub', url: 'https://github.com/drj7zz', icon: 'Github' },
+  { name: 'X / Twitter', url: 'https://x.com/drj7zz', icon: 'Twitter' },
   { name: 'Reddit', url: 'https://www.reddit.com/user/Ok-Fox-4670', icon: 'Globe' },
   { name: 'Email', url: 'mailto:giridirghraj@gmail.com', icon: 'Mail' }
 ];
@@ -8,26 +10,26 @@ export const socialLinks = [
 export const facts = [
   ['Location', ['Parsa, Madhesh', 'Nepal']],
   ['Education', ['Bachelor of Information', 'Technology (BIT)']],
-  ['Discipline', ['Frontend', 'Development']],
-  ['Approach', ['Curious, reliable', 'and collaborative']]
+  ['Discipline', ['Frontend Architecture', '& Engineering']],
+  ['Approach', ['Methodical, reliable', '& performance-driven']]
 ];
 
 export const heroSignals = [
   ['Smartphone', 'Responsive-first'],
   ['Accessibility', 'Accessible by design'],
-  ['Users', 'Open to collaboration']
+  ['Users', 'Production-ready']
 ];
 
 export const skills = [
-  ['Code2', 'JavaScript (ES6+)', 'Building interactive, maintainable experiences with strong browser fundamentals.', 'CORE'],
-  ['Layout', 'Frontend Engineering', 'Creating responsive layouts, semantic markup, and polished user interactions.', 'BUILD'],
-  ['GitBranch', 'Open Source & Git', 'Learning through real repositories, pull requests, and collaborative delivery.', 'GROW']
+  ['Code2', 'Modern JavaScript & TypeScript', 'Engineering interactive, type-safe, and maintainable architectures with strong browser fundamentals.', 'CORE'],
+  ['Layout', 'Frontend Architecture & CSS', 'Crafting responsive design systems, semantic markup, fluid layouts, and polished user interactions.', 'BUILD'],
+  ['GitBranch', 'Open Source & Version Control', 'Driving reproducible builds, automated CI/CD workflows, collaborative pull requests, and peer reviews.', 'SCALE']
 ];
 
 export const careerStrengths = [
-  ['01', 'Product-minded UI', 'I translate an idea into a clear interface that feels useful from the first interaction.'],
-  ['02', 'Detail with purpose', 'Accessibility, responsive behavior, and readable code are part of the work—not a final pass.'],
-  ['03', 'Ready to contribute', 'I am growing through open source and looking for frontend opportunities where I can learn fast and ship thoughtfully.']
+  ['01', 'Product-Minded Architecture', 'Translating user requirements and product vision into resilient, high-performance interfaces that deliver immediate value.'],
+  ['02', 'Precision & Standards', 'Accessibility (WCAG), responsive performance, semantic structure, and maintainable codebases are foundational to every release.'],
+  ['03', 'Engineering Ownership', 'Committed to continuous delivery, open-source standards, and driving high-impact technical initiatives within cross-functional teams.']
 ];
 
 export const projects = [

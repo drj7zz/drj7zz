@@ -11,13 +11,13 @@
 
 <p align="center">
   <a href="https://github.com/drj7zz"><img src="https://img.shields.io/badge/GitHub-DRJ7ZZ-101B24?style=flat-square&logo=github&logoColor=white" alt="GitHub"></a>
-  <a href="https://www.instagram.com/drj7zz"><img src="https://img.shields.io/badge/Instagram-@drj7zz-101B24?style=flat-square&logo=instagram&logoColor=E1306C" alt="Instagram"></a>
+  <a href="https://www.instagram.com/drj1zz"><img src="https://img.shields.io/badge/Instagram-@DRJ1ZZ-101B24?style=flat-square&logo=instagram&logoColor=E1306C" alt="Instagram"></a>
   <a href="mailto:giridirghraj@gmail.com"><img src="https://img.shields.io/badge/Email-Get_in_touch-101B24?style=flat-square&logo=gmail&logoColor=83E7F6" alt="Email"></a>
 </p>
 
 ## Hey, I am DRJ
 
-I am a frontend developer and open-source learner from **Madhesh, Nepal**. I like working where clear visual design meets dependable frontend code. I am building my skills in public, learning through projects, and exploring the people and tools behind the open web.
+I am a frontend developer and open-source contributor from **Madhesh, Nepal**, building high-performance, responsive, and accessible web experiences. I focus on clean visual architecture, resilient frontend engineering, and contributing to the open web ecosystem.
 
 ## 🛠️ Tech Stack & Tools
 

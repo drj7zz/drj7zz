@@ -27,13 +27,13 @@ export default function ProjectsPage() {
   return (
     <section className="projects-section" aria-labelledby="projects-title">
       <div className="projects-intro">
-        <p className="section-label">04 / Selected works</p>
-        <h2 id="projects-title">Small, intentional experiments.</h2>
+        <p className="section-label">04 / Selected Works</p>
+        <h2 id="projects-title">Engineered for performance and clarity.</h2>
         <p>
-          A selection of projects exploring browser interfaces, system design, and practical JavaScript.
+          A curated selection of production applications, interactive browser architectures, and open-source systems.
         </p>
         <p className="kaalyug-note">
-          Each project is an opportunity to learn a specific pattern—from double-entry accounting to desktop window management.
+          Each application is architected with modular design patterns, strict state management, and responsive user experience across modern platforms.
         </p>
       </div>
 

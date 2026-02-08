@@ -8,13 +8,13 @@ export default function CareerPage() {
   return (
     <section className="career-panel" aria-labelledby="career-title">
       <div className="career-intro">
-        <p className="section-label">03 / Career direction</p>
-        <h2 id="career-title">Growing into a dependable frontend partner.</h2>
+        <p className="section-label">03 / Engineering Focus</p>
+        <h2 id="career-title">Engineering dependable frontend solutions.</h2>
         <p>
-          I am building the foundation for a career in frontend development: thoughtful implementation, strong collaboration habits, and the confidence to take ownership of a user-facing experience.
+          Delivering thoughtful implementation, scalable architecture, and production-grade user experiences with strong technical ownership and collaborative execution.
         </p>
         <Link className="text-link" href="/connect">
-          Open to internships, junior roles, and collaboration <ArrowRight size={14} />
+          Open to frontend engineering roles, contract work, and technical collaboration <ArrowRight size={14} />
         </Link>
       </div>
 
