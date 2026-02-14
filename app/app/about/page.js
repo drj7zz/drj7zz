@@ -14,7 +14,7 @@ export default function AboutPage() {
           I work where frontend engineering meets visual clarity. My goal is to create web interfaces that communicate quickly, adapt gracefully across devices, and remain easy for teams to evolve.
         </p>
         <p className="kaalyug-note">
-          <strong>Founder of KAALYUG:</strong> an open web ecosystem in progress, exploring practical tools such as digital wallets, marketplaces, and open-source projects that make online systems more useful and accessible.
+          <strong>Founder of KAALYUG:</strong> an open-source web initiative engineering practical browser tools, decentralized financial interfaces, and high-performance digital systems built for accessibility, reliability, and modern web standards.
         </p>
         <div className="facts">
           {facts.map(([label, lines]) => (
@@ -27,7 +27,7 @@ export default function AboutPage() {
 
         <div style={{ marginTop: '32px' }}>
           <Link className="button" href="/skills">
-            Skills I am sharpening <ArrowRight size={14} />
+            View technical competencies <ArrowRight size={14} />
           </Link>
         </div>
       </section>

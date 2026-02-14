@@ -14,10 +14,10 @@ export default function SkillsPage() {
   return (
     <div className="content-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '780px' }}>
       <section className="section-panel" aria-labelledby="skills-title">
-        <p className="section-label">02 / Focus</p>
-        <h2 id="skills-title">Skills I am sharpening.</h2>
+        <p className="section-label">02 / Technical Focus</p>
+        <h2 id="skills-title">Core competencies &amp; technical stack.</h2>
         <p>
-          My focus centers on browser fundamentals, modern JavaScript, semantic markup, and responsive web design.
+          Engineering resilient frontend systems centered on browser standards, performant JavaScript, accessible interfaces, and scalable architectures.
         </p>
 
         <div className="skill-list" style={{ marginTop: '24px' }}>
