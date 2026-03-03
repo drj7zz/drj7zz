@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/blog', label: 'Blog' },
   { href: '/github', label: 'GitHub' },
   { href: '/connect', label: 'Connect' },
+  { href: '/login', label: 'Login' },
   { href: '/admin/login', label: 'Admin' }
 ];
 

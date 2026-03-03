@@ -5,14 +5,14 @@ import Link from 'next/link';
 import {
   FileText, FolderGit2, Link as LinkIcon, Database,
   LogOut, Plus, Trash2, Edit2, Save, CheckCircle2,
-  AlertCircle, RefreshCw, Eye, Code
+  AlertCircle, RefreshCw, Eye, Code, Inbox, Send
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('blogs');
   const [authChecking, setAuthChecking] = useState(true);
   const [user, setUser] = useState('');
-  
+
   // Data states
   const [blogs, setBlogs] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -28,6 +28,13 @@ export default function AdminDashboardPage() {
   // Form states (Project)
   const [projectForm, setProjectForm] = useState({ name: '', description: '', stack: 'JavaScript', code: '', live: '', order: 0 });
   const [editingProjectName, setEditingProjectName] = useState(null);
+
+  // Chat inbox states
+  const [threads, setThreads] = useState([]);
+  const [activeThread, setActiveThread] = useState(null);
+  const [threadMessages, setThreadMessages] = useState([]);
+  const [inboxDraft, setInboxDraft] = useState('');
+  const inboxBodyRef = React.useRef(null);
 
   const router = useRouter();
 
@@ -196,6 +203,73 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // ─── Chat Inbox ───
+  const loadThreads = async () => {
+    try {
+      const res = await fetch('/api/chat/messages?threads=1');
+      if (res.ok) {
+        const data = await res.json();
+        setThreads(data.threads || []);
+      }
+    } catch (_err) { /* ignore */ }
+  };
+
+  const openThread = async (username) => {
+    setActiveThread(username);
+    try {
+      const res = await fetch(`/api/chat/messages?user=${encodeURIComponent(username)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setThreadMessages(data.messages || []);
+      }
+    } catch (_err) { /* ignore */ }
+  };
+
+  const sendReply = async (e) => {
+    e.preventDefault();
+    const text = inboxDraft.trim();
+    if (!text || !activeThread) return;
+    try {
+      const res = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, user: activeThread })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send');
+      setThreadMessages(prev => [...prev, data.message]);
+      setInboxDraft('');
+      loadThreads();
+    } catch (err) {
+      showFeedback('error', err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'inbox') return;
+    loadThreads();
+    const poll = setInterval(loadThreads, 5000);
+    return () => clearInterval(poll);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'inbox' || !activeThread) return;
+    const poll = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/chat/messages?user=${encodeURIComponent(activeThread)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setThreadMessages(data.messages || []);
+        }
+      } catch (_err) { /* ignore */ }
+    }, 4000);
+    return () => clearInterval(poll);
+  }, [activeTab, activeThread]);
+
+  React.useEffect(() => {
+    if (inboxBodyRef.current) inboxBodyRef.current.scrollTop = inboxBodyRef.current.scrollHeight;
+  }, [threadMessages]);
+
   if (authChecking) {
     return (
       <div style={{ padding: '80px 0', textAlign: 'center', color: 'var(--muted)', font: '12px "DM Mono", monospace' }}>
@@ -292,6 +366,7 @@ export default function AdminDashboardPage() {
         {[
           { id: 'blogs', label: `Blogs (${blogs.length})`, icon: FileText },
           { id: 'projects', label: `Projects (${projects.length})`, icon: FolderGit2 },
+          { id: 'inbox', label: `Inbox (${threads.length})`, icon: Inbox },
           { id: 'info', label: 'Site Links & Info', icon: LinkIcon }
         ].map(tab => {
           const Icon = tab.icon;
@@ -553,12 +628,73 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* ─── TAB 3: SITE INFO & SOCIAL LINKS ─── */}
+      {/* ─── TAB 3: CHAT INBOX (Messenger theme) ─── */}
+      {activeTab === 'inbox' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <h3 style={{ margin: 0, font: '800 16px Space Grotesk, sans-serif' }}>Private Chat Inbox</h3>
+            <button onClick={loadThreads} className="button ghost" style={{ minHeight: '34px', padding: '0 10px', fontSize: '11px' }}>
+              <RefreshCw size={12} /> Refresh
+            </button>
+          </div>
+          <div className="inbox">
+            <div className="inbox-thread-list">
+              {threads.length === 0 && (
+                <div className="inbox-empty">No conversations yet.<br />Users who register on the Connect page will appear here.</div>
+              )}
+              {threads.map(t => (
+                <button
+                  key={t.username}
+                  className={`inbox-thread ${activeThread === t.username ? 'active' : ''}`}
+                  onClick={() => openThread(t.username)}
+                >
+                  <strong>{t.username}</strong>
+                  <span>{t.lastFrom === 'admin' ? 'You: ' : ''}{t.lastMessage}</span>
+                </button>
+              ))}
+            </div>
+            <div className="inbox-chat">
+              {activeThread ? (
+                <>
+                  <div className="chat-head">Chat with {activeThread}</div>
+                  <div className="chat-body" ref={inboxBodyRef}>
+                    {threadMessages.map((m, idx) => (
+                      <div className={`chat-bubble ${m.from === 'admin' ? 'me' : 'them'}`} key={idx}>
+                        {m.text}
+                        <span className="chat-time">
+                          {new Date(m.at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <form className="chat-form" onSubmit={sendReply}>
+                    <input
+                      type="text"
+                      placeholder={`Reply to ${activeThread}…`}
+                      value={inboxDraft}
+                      onChange={e => setInboxDraft(e.target.value)}
+                      maxLength={2000}
+                    />
+                    <button type="submit" disabled={!inboxDraft.trim()}>
+                      <Send size={13} /> Send
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="inbox-empty">Select a conversation from the left.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 4: SITE INFO & SOCIAL LINKS ─── */}
       {activeTab === 'info' && (
         <div style={{ border: '1px solid var(--line)', padding: '24px', borderRadius: '8px' }}>
-          <h3 style={{ margin: '0 0 16px', font: '800 16px Space Grotesk, sans-serif' }}>Social Links & Facts</h3>
+          <h3 style={{ margin: '0 0 16px', font: '800 16px Space Grotesk, sans-serif' }}>Social Links Manager</h3>
           <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '20px' }}>
-            Configure the direct URLs for Instagram, GitHub, Reddit, and Email.
+            Add, edit or remove media links (LinkedIn, GitHub, Instagram, Email, etc.).
+            The <strong>Icon</strong> field accepts any <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>Lucide icon name</a> (e.g. Linkedin, Github, Instagram, Mail, Globe, Twitter).
           </p>
 
           <form onSubmit={async (e) => {
@@ -575,25 +711,71 @@ export default function AdminDashboardPage() {
               showFeedback('error', err.message);
             }
           }} style={{ display: 'grid', gap: '16px' }}>
-            {siteInfo.socialLinks && siteInfo.socialLinks.map((link, idx) => (
-              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800 }}>{link.name}</span>
+            {(siteInfo.socialLinks || []).map((link, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr) auto', gap: '12px', alignItems: 'center' }}>
                 <input
                   type="text"
-                  value={link.url}
+                  value={link.name}
+                  placeholder="Name"
                   onChange={e => {
                     const next = [...siteInfo.socialLinks];
-                    next[idx].url = e.target.value;
+                    next[idx] = { ...next[idx], name: e.target.value };
                     setSiteInfo({ ...siteInfo, socialLinks: next });
                   }}
                   style={{ width: '100%', height: '38px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
                 />
+                <input
+                  type="text"
+                  value={link.url}
+                  placeholder="https://..."
+                  onChange={e => {
+                    const next = [...siteInfo.socialLinks];
+                    next[idx] = { ...next[idx], url: e.target.value };
+                    setSiteInfo({ ...siteInfo, socialLinks: next });
+                  }}
+                  style={{ width: '100%', height: '38px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
+                />
+                <input
+                  type="text"
+                  value={link.icon || ''}
+                  placeholder="Icon (Lucide name)"
+                  onChange={e => {
+                    const next = [...siteInfo.socialLinks];
+                    next[idx] = { ...next[idx], icon: e.target.value };
+                    setSiteInfo({ ...siteInfo, socialLinks: next });
+                  }}
+                  style={{ width: '100%', height: '38px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!confirm(`Remove ${link.name || 'this link'}?`)) return;
+                    setSiteInfo({ ...siteInfo, socialLinks: siteInfo.socialLinks.filter((_, i) => i !== idx) });
+                  }}
+                  className="button ghost"
+                  style={{ minHeight: '38px', padding: '0 10px', fontSize: '11px', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                  title="Remove link"
+                >
+                  <Trash2 size={12} />
+                </button>
               </div>
             ))}
 
-            <button type="submit" className="button" style={{ marginTop: '12px', width: 'fit-content' }}>
-              <Save size={13} /> Save Links & Info
-            </button>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => setSiteInfo({
+                  ...siteInfo,
+                  socialLinks: [...(siteInfo.socialLinks || []), { name: '', url: '', icon: 'Globe' }]
+                })}
+              >
+                <Plus size={13} /> Add New Link
+              </button>
+              <button type="submit" className="button">
+                <Save size={13} /> Save Links & Info
+              </button>
+            </div>
           </form>
         </div>
       )}

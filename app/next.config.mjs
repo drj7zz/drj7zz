@@ -2,7 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  serverExternalPackages: ['mongodb', 'bcryptjs'],
+  experimental: {
+    serverComponentsExternalPackages: ['mongodb', 'bcryptjs']
+  },
   images: {
     unoptimized: true
   },
