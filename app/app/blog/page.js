@@ -1,11 +1,14 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Clock, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Clock, ChevronDown, ChevronUp, RefreshCw, Bookmark, BookmarkCheck } from 'lucide-react';
 
 export default function BlogPage() {
   const [blogs, setBlogs] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [savedIds, setSavedIds] = useState(new Set());
+  const [savingId, setSavingId] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function loadBlogs() {
@@ -23,7 +26,58 @@ export default function BlogPage() {
       }
     }
     loadBlogs();
+
+    // Check user & load saved blogs
+    fetch('/api/chat/auth')
+      .then((r) => (r.ok ? r.json() : { user: null }))
+      .then((d) => {
+        if (d?.user) {
+          setUser(d.user);
+          return fetch('/api/user/saved')
+            .then((r) => (r.ok ? r.json() : { items: [] }))
+            .then((res) => {
+              const ids = new Set((res.items || []).map((i) => i.id));
+              setSavedIds(ids);
+            });
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const toggleSave = async (e, post) => {
+    e.stopPropagation();
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+    const isSaved = savedIds.has(post.id);
+    setSavingId(post.id);
+    try {
+      if (isSaved) {
+        const res = await fetch(`/api/user/saved?id=${encodeURIComponent(post.id)}`, { method: 'DELETE' });
+        if (res.ok) {
+          setSavedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(post.id);
+            return next;
+          });
+        }
+      } else {
+        const res = await fetch('/api/user/saved', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: post.id, title: post.title, type: 'blog' })
+        });
+        if (res.ok) {
+          setSavedIds((prev) => new Set(prev).add(post.id));
+        }
+      }
+    } catch (_err) {
+      // ignore
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   const togglePost = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -81,14 +135,41 @@ export default function BlogPage() {
                       <span className="blog-tag">{post.tags}</span>
                     )}
                   </div>
-                  <span className="blog-toggle">
-                    {isExpanded ? (
-                      <>Collapse <ChevronUp size={13} /></>
-                    ) : (
-                      <>Read note <ChevronDown size={13} /></>
-                    )}
-                  </span>
-                </div>
+                    <span className="blog-toggle">
+                      {isExpanded ? (
+                        <>Collapse <ChevronUp size={13} /></>
+                      ) : (
+                        <>Read note <ChevronDown size={13} /></>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleSave(e, post)}
+                      disabled={savingId === post.id}
+                      title={savedIds.has(post.id) ? 'Remove bookmark' : 'Save note to account'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 10px',
+                        border: '1px solid var(--line)',
+                        borderRadius: '4px',
+                        color: savedIds.has(post.id) ? 'var(--accent)' : 'var(--muted)',
+                        borderColor: savedIds.has(post.id) ? 'var(--accent)' : 'var(--line)',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {savedIds.has(post.id) ? (
+                        <><BookmarkCheck size={13} /> Saved</>
+                      ) : (
+                        <><Bookmark size={13} /> Save</>
+                      )}
+                    </button>
+                  </div>
               </div>
 
               {isExpanded && (
