@@ -197,7 +197,20 @@ export default function GitHubPage() {
             <RefreshCw size={12} className="spin-icon" style={{ display: 'inline', marginRight: '6px' }} />
             Synchronizing GitHub activity stream...
           </p>
-          <div className="graph-skeleton-grid" aria-hidden="true" />
+          <div className="graph-skeleton-grid skeleton-shimmer" aria-hidden="true" />
+
+          <div style={{ marginTop: '36px' }}>
+            <div className="skeleton-shimmer" style={{ width: '160px', height: '16px', marginBottom: '16px' }} />
+            <div className="repo-list">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="repo-item" style={{ pointerEvents: 'none' }}>
+                  <div className="skeleton-shimmer" style={{ width: '40%', height: '18px', marginBottom: '8px' }} />
+                  <div className="skeleton-shimmer" style={{ width: '75%', height: '13px', marginBottom: '6px' }} />
+                  <div className="skeleton-shimmer" style={{ width: '25%', height: '11px' }} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

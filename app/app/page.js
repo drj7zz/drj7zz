@@ -1,11 +1,13 @@
 'use client';
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { heroSignals } from '../lib/data';
+import { heroSignals, socialLinks as seedSocialLinks } from '../lib/data';
+import Icon from '../components/Icon';
 import {
   ArrowRight, Send, Smartphone, Accessibility, Users,
   GitBranch, ExternalLink, RefreshCw, Clock, ChevronDown, ChevronUp,
-  Code2, Terminal, Braces, Bug, Cpu, GitCommit, Flame, Trophy, Sparkles
+  Code2, Terminal, Braces, Bug, Cpu, GitCommit, Flame, Trophy, Sparkles,
+  Copy, Check
 } from 'lucide-react';
 
 const ORBIT_ICONS = [Code2, Terminal, Braces, GitBranch, Cpu];
@@ -27,6 +29,8 @@ export default function DashboardPage() {
   const [hoveredCell, setHoveredCell] = useState(null);
   const [profileImgLoaded, setProfileImgLoaded] = useState(false);
   const [profileImgError, setProfileImgError] = useState(false);
+  const [socials, setSocials] = useState(seedSocialLinks);
+  const [copiedCodeId, setCopiedCodeId] = useState(null);
   const imgRef = React.useRef(null);
 
   useEffect(() => {
@@ -39,9 +43,10 @@ export default function DashboardPage() {
     async function loadData() {
       try {
         setLoadingActivity(true);
-        const [resAct, resBlogs] = await Promise.all([
+        const [resAct, resBlogs, resInfo] = await Promise.all([
           fetch('/api/github-activity'),
-          fetch('/api/blogs')
+          fetch('/api/blogs'),
+          fetch('/api/site-info')
         ]);
 
         if (resAct.ok) {
@@ -52,6 +57,13 @@ export default function DashboardPage() {
         if (resBlogs.ok) {
           const blogData = await resBlogs.json();
           setTopBlogs((blogData.data || []).slice(0, 2));
+        }
+
+        if (resInfo.ok) {
+          const infoData = await resInfo.json();
+          if (Array.isArray(infoData?.data?.socialLinks) && infoData.data.socialLinks.length > 0) {
+            setSocials(infoData.data.socialLinks);
+          }
         }
       } catch (_err) {
         // Handled gracefully
@@ -64,6 +76,14 @@ export default function DashboardPage() {
 
   const toggleBlog = (id) => {
     setExpandedBlogId(expandedBlogId === id ? null : id);
+  };
+
+  const copySnippet = (codeText, snippetId) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(codeText);
+      setCopiedCodeId(snippetId);
+      setTimeout(() => setCopiedCodeId(null), 2000);
+    }
   };
 
   const calendar = activity?.contributionCalendar;
@@ -127,7 +147,7 @@ export default function DashboardPage() {
                 {!profileImgError ? (
                   <img
                     ref={imgRef}
-                    src="/assets/images/profile.jpg"
+                    src="/assets/images/profile.png"
                     alt="Dirghraj Giri (DRJ) - Frontend Engineer"
                     width={260}
                     height={260}
@@ -170,6 +190,24 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+
+            {/* Social Media Links on Dashboard */}
+            <div className="hero-social-links" aria-label="Connect with DRJ">
+              {socials.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.url}
+                  target={link.url?.startsWith('mailto:') ? undefined : '_blank'}
+                  rel="noopener noreferrer"
+                  className="hero-social-badge"
+                  title={`Open ${link.name}`}
+                  aria-label={link.name}
+                >
+                  <Icon name={link.icon} size={13} />
+                  <span>{link.name}</span>
+                </a>
+              ))}
+            </div>
           </div>
 
         </div>
@@ -187,7 +225,26 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {topBlogs.length === 0 && (
+        {loadingActivity && topBlogs.length === 0 && (
+          <div className="blog-skeleton-list">
+            {[1, 2].map((i) => (
+              <div className="blog-skeleton-card" key={i}>
+                <div className="blog-skeleton-meta">
+                  <div className="skeleton-shimmer" style={{ width: '80px', height: '12px' }} />
+                  <div className="skeleton-shimmer" style={{ width: '70px', height: '12px' }} />
+                </div>
+                <div className="skeleton-shimmer blog-skeleton-title" />
+                <div className="skeleton-shimmer blog-skeleton-desc" />
+                <div className="blog-skeleton-footer">
+                  <div className="skeleton-shimmer" style={{ width: '120px', height: '20px', borderRadius: '4px' }} />
+                  <div className="skeleton-shimmer" style={{ width: '80px', height: '16px', borderRadius: '4px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loadingActivity && topBlogs.length === 0 && (
           <p style={{ color: 'var(--muted)', fontSize: '13px' }}>
             No featured notes published yet.
           </p>
@@ -236,11 +293,29 @@ export default function DashboardPage() {
                   <div className="blog-content">
                     {post.content && post.content.split('\n\n').map((paragraph, idx) => {
                       if (paragraph.startsWith('```')) {
-                        const codeText = paragraph.replace(/```(javascript|css)?/g, '').trim();
+                        const langMatch = paragraph.match(/^```([a-zA-Z0-9]+)?/);
+                        const lang = langMatch && langMatch[1] ? langMatch[1] : 'code';
+                        const codeText = paragraph.replace(/```[a-zA-Z0-9]*\n?/g, '').trim();
+                        const snippetKey = `${post.id}-snip-${idx}`;
+                        const isCopied = copiedCodeId === snippetKey;
+
                         return (
-                          <pre key={idx}>
-                            <code>{codeText}</code>
-                          </pre>
+                          <div className="code-block-wrapper" key={idx}>
+                            <div className="code-block-header">
+                              <span>{lang}</span>
+                              <button
+                                type="button"
+                                className={`code-copy-btn ${isCopied ? 'copied' : ''}`}
+                                onClick={() => copySnippet(codeText, snippetKey)}
+                                aria-label="Copy snippet to clipboard"
+                              >
+                                {isCopied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
+                              </button>
+                            </div>
+                            <pre>
+                              <code>{codeText}</code>
+                            </pre>
+                          </div>
                         );
                       }
                       if (paragraph.startsWith('**')) {

@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { getDatabase } from '../../../lib/mongodb';
 import { getAdminSession } from '../../../lib/auth';
 
+import { projects as seedProjects } from '../../../lib/data';
+
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
@@ -19,10 +21,13 @@ export async function GET() {
   try {
     const db = await getDatabase();
     if (!db) {
-      return NextResponse.json({ source: 'mongodb_unconnected', data: [] }, { headers: corsHeaders() });
+      return NextResponse.json({ source: 'seed', data: seedProjects }, { headers: corsHeaders() });
     }
 
     const projects = await db.collection('projects').find({}).sort({ order: 1, createdAt: -1 }).toArray();
+    if (!projects || projects.length === 0) {
+      return NextResponse.json({ source: 'seed', data: seedProjects }, { headers: corsHeaders() });
+    }
     const formatted = projects.map(p => ({
       ...p,
       id: p.id || p._id.toString()
@@ -30,7 +35,7 @@ export async function GET() {
 
     return NextResponse.json({ source: 'mongodb', data: formatted }, { headers: corsHeaders() });
   } catch (_error) {
-    return NextResponse.json({ source: 'error', data: [] }, { headers: corsHeaders() });
+    return NextResponse.json({ source: 'seed_fallback', data: seedProjects }, { headers: corsHeaders() });
   }
 }
 

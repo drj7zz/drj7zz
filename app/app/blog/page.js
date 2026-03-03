@@ -1,26 +1,35 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { Clock, ChevronDown, ChevronUp, RefreshCw, Bookmark, BookmarkCheck } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import {
+  Clock, ChevronDown, ChevronUp, RefreshCw, Bookmark, BookmarkCheck,
+  Search, X, Share2, Check, Copy, Sparkles, BookOpen
+} from 'lucide-react';
+import { blogPosts as seedBlogs } from '../../lib/data';
 
 export default function BlogPage() {
-  const [blogs, setBlogs] = useState([]);
+  const [blogs, setBlogs] = useState(seedBlogs);
   const [expandedId, setExpandedId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [savedIds, setSavedIds] = useState(new Set());
   const [savingId, setSavingId] = useState(null);
   const [user, setUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('All');
+  const [copiedCodeId, setCopiedCodeId] = useState(null);
+  const [copiedShareId, setCopiedShareId] = useState(null);
 
   useEffect(() => {
     async function loadBlogs() {
       try {
-        setLoading(true);
         const res = await fetch('/api/blogs');
         if (res.ok) {
           const json = await res.json();
-          setBlogs(json.data || []);
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            setBlogs(json.data);
+          }
         }
       } catch (_err) {
-        setBlogs([]);
+        // Fallback to seedBlogs already loaded
       } finally {
         setLoading(false);
       }
@@ -83,34 +92,152 @@ export default function BlogPage() {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const copySnippet = (codeText, snippetId) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(codeText);
+      setCopiedCodeId(snippetId);
+      setTimeout(() => setCopiedCodeId(null), 2000);
+    }
+  };
+
+  const sharePost = (e, post) => {
+    e.stopPropagation();
+    if (typeof window !== 'undefined') {
+      const url = `${window.location.origin}/blog#${post.id}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url);
+        setCopiedShareId(post.id);
+        setTimeout(() => setCopiedShareId(null), 2000);
+      }
+    }
+  };
+
+  // Derive unique tags across blogs
+  const allTags = useMemo(() => {
+    const tagSet = new Set(['All']);
+    blogs.forEach((b) => {
+      if (Array.isArray(b.tags)) {
+        b.tags.forEach((t) => tagSet.add(t));
+      } else if (typeof b.tags === 'string') {
+        b.tags.split(',').forEach((t) => tagSet.add(t.trim()));
+      }
+    });
+    return Array.from(tagSet);
+  }, [blogs]);
+
+  // Filtered blogs based on search query and selected tag
+  const filteredBlogs = useMemo(() => {
+    return blogs.filter((post) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        post.title?.toLowerCase().includes(q) ||
+        post.excerpt?.toLowerCase().includes(q) ||
+        (Array.isArray(post.tags) ? post.tags.some((t) => t.toLowerCase().includes(q)) : post.tags?.toLowerCase().includes(q));
+
+      const matchesTag =
+        selectedTag === 'All' ||
+        (Array.isArray(post.tags) ? post.tags.includes(selectedTag) : post.tags?.includes(selectedTag));
+
+      return matchesSearch && matchesTag;
+    });
+  }, [blogs, searchQuery, selectedTag]);
+
   return (
     <section className="blog-section" aria-labelledby="blog-title">
       <div className="blog-intro">
-        <p className="section-label">05 / Notes & writing</p>
+        <p className="section-label">05 / Notes &amp; writing</p>
         <h2 id="blog-title">Notes on building for the web.</h2>
         <p>
-          Documenting what I learn along the way — frontend architecture, design tokens, accessibility, git workflows, and interface design.
+          Documenting lessons on frontend architecture, design systems, performance, accessibility, and modern JavaScript engineering.
         </p>
       </div>
 
-      {loading && (
-        <p style={{ color: 'var(--muted)', font: '11px "DM Mono", monospace', margin: '20px 0' }}>
-          <RefreshCw size={12} style={{ display: 'inline', marginRight: '6px' }} />
-          Loading engineering notes...
-        </p>
+      {/* ─── Search and Tag Filters ─── */}
+      <div className="blog-controls-bar">
+        <div className="blog-search-wrap">
+          <Search size={15} className="blog-search-icon" />
+          <input
+            type="text"
+            className="blog-search-input"
+            placeholder="Search notes by keyword or concept..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search articles"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="blog-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="blog-tag-filters" role="tablist" aria-label="Filter notes by tag">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              role="tab"
+              aria-selected={selectedTag === tag}
+              className={`blog-filter-btn ${selectedTag === tag ? 'active' : ''}`}
+              onClick={() => setSelectedTag(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && blogs.length === 0 && (
+        <div className="blog-skeleton-list">
+          {[1, 2, 3].map((i) => (
+            <div className="blog-skeleton-card" key={i}>
+              <div className="blog-skeleton-meta">
+                <div className="skeleton-shimmer" style={{ width: '90px', height: '12px' }} />
+                <div className="skeleton-shimmer" style={{ width: '80px', height: '12px' }} />
+              </div>
+              <div className="skeleton-shimmer blog-skeleton-title" />
+              <div className="skeleton-shimmer blog-skeleton-desc" />
+              <div className="skeleton-shimmer blog-skeleton-desc-sub" />
+              <div className="blog-skeleton-footer">
+                <div className="skeleton-shimmer" style={{ width: '150px', height: '22px', borderRadius: '4px' }} />
+                <div className="skeleton-shimmer" style={{ width: '100px', height: '20px', borderRadius: '4px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
-      {!loading && blogs.length === 0 && (
-        <div style={{ padding: '36px 0', borderTop: '1px solid var(--line)', color: 'var(--muted)', fontSize: '13px' }}>
-          No notes published yet. Add your first note in the <a href="/admin" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>Admin Dashboard</a>.
+      {!loading && filteredBlogs.length === 0 && (
+        <div style={{ padding: '48px 0', borderTop: '1px solid var(--line)', color: 'var(--muted)', fontSize: '13px', textAlign: 'center' }}>
+          <p style={{ margin: '0 0 12px' }}>
+            No engineering notes found matching <strong>&ldquo;{searchQuery || selectedTag}&rdquo;</strong>.
+          </p>
+          <button
+            type="button"
+            className="button"
+            style={{ fontSize: '11px', height: '36px' }}
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedTag('All');
+            }}
+          >
+            Show All Notes
+          </button>
         </div>
       )}
 
       <div className="blog-list">
-        {blogs.map((post) => {
+        {filteredBlogs.map((post) => {
           const isExpanded = expandedId === post.id;
+          const isShareCopied = copiedShareId === post.id;
           return (
-            <article className="blog-card" key={post.id}>
+            <article className="blog-card" key={post.id} id={post.id}>
               <div
                 className="blog-card-header"
                 onClick={() => togglePost(post.id)}
@@ -135,13 +262,32 @@ export default function BlogPage() {
                       <span className="blog-tag">{post.tags}</span>
                     )}
                   </div>
-                    <span className="blog-toggle">
-                      {isExpanded ? (
-                        <>Collapse <ChevronUp size={13} /></>
-                      ) : (
-                        <>Read note <ChevronDown size={13} /></>
-                      )}
-                    </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => sharePost(e, post)}
+                      title="Copy link to note"
+                      aria-label="Share note link"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 10px',
+                        border: '1px solid var(--line)',
+                        borderRadius: '4px',
+                        color: isShareCopied ? '#40c463' : 'var(--muted)',
+                        borderColor: isShareCopied ? '#40c463' : 'var(--line)',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {isShareCopied ? <><Check size={12} /> Copied</> : <><Share2 size={12} /> Share</>}
+                    </button>
+
                     <button
                       type="button"
                       onClick={(e) => toggleSave(e, post)}
@@ -169,18 +315,45 @@ export default function BlogPage() {
                         <><Bookmark size={13} /> Save</>
                       )}
                     </button>
+
+                    <span className="blog-toggle">
+                      {isExpanded ? (
+                        <>Collapse <ChevronUp size={13} /></>
+                      ) : (
+                        <>Read note <ChevronDown size={13} /></>
+                      )}
+                    </span>
                   </div>
+                </div>
               </div>
 
               {isExpanded && (
                 <div className="blog-content">
                   {post.content && post.content.split('\n\n').map((paragraph, idx) => {
                     if (paragraph.startsWith('```')) {
-                      const codeText = paragraph.replace(/```(javascript|css)?/g, '').trim();
+                      const langMatch = paragraph.match(/^```([a-zA-Z0-9]+)?/);
+                      const lang = langMatch && langMatch[1] ? langMatch[1] : 'code';
+                      const codeText = paragraph.replace(/```[a-zA-Z0-9]*\n?/g, '').trim();
+                      const snippetKey = `${post.id}-snip-${idx}`;
+                      const isCopied = copiedCodeId === snippetKey;
+
                       return (
-                        <pre key={idx}>
-                          <code>{codeText}</code>
-                        </pre>
+                        <div className="code-block-wrapper" key={idx}>
+                          <div className="code-block-header">
+                            <span>{lang}</span>
+                            <button
+                              type="button"
+                              className={`code-copy-btn ${isCopied ? 'copied' : ''}`}
+                              onClick={() => copySnippet(codeText, snippetKey)}
+                              aria-label="Copy snippet to clipboard"
+                            >
+                              {isCopied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
+                            </button>
+                          </div>
+                          <pre>
+                            <code>{codeText}</code>
+                          </pre>
+                        </div>
                       );
                     }
                     if (paragraph.startsWith('**')) {
@@ -193,6 +366,16 @@ export default function BlogPage() {
                     }
                     return <p key={idx}>{paragraph}</p>;
                   })}
+
+                  <div className="blog-collapse-footer">
+                    <button
+                      type="button"
+                      className="blog-collapse-btn"
+                      onClick={() => togglePost(post.id)}
+                    >
+                      Close Note <ChevronUp size={13} />
+                    </button>
+                  </div>
                 </div>
               )}
             </article>

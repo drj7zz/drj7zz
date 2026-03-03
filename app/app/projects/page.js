@@ -1,22 +1,24 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { ExternalLink, GitBranch, RefreshCw } from 'lucide-react';
+import { ExternalLink, GitBranch, RefreshCw, Sparkles } from 'lucide-react';
+import { projects as seedProjects } from '../../lib/data';
 
 export default function ProjectsPage() {
-  const [projectsList, setProjectsList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [projectsList, setProjectsList] = useState(seedProjects);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function loadProjects() {
       try {
-        setLoading(true);
         const res = await fetch('/api/projects');
         if (res.ok) {
           const json = await res.json();
-          setProjectsList(json.data || []);
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            setProjectsList(json.data);
+          }
         }
       } catch (_err) {
-        setProjectsList([]);
+        // Fallback to seedProjects already loaded
       } finally {
         setLoading(false);
       }
@@ -38,11 +40,19 @@ export default function ProjectsPage() {
       </div>
 
       <div className="project-list">
-        {loading && (
-          <p style={{ color: 'var(--muted)', font: '11px "DM Mono", monospace', margin: '20px 0' }}>
-            <RefreshCw size={12} style={{ display: 'inline', marginRight: '6px' }} />
-            Loading projects...
-          </p>
+        {loading && projectsList.length === 0 && (
+          <div style={{ display: 'grid', gap: '20px', padding: '20px 0' }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '32px 1fr auto', gap: '14px', padding: '16px 0', borderBottom: '1px solid var(--line)' }}>
+                <div className="skeleton-shimmer" style={{ width: '24px', height: '18px' }} />
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  <div className="skeleton-shimmer" style={{ width: '45%', height: '20px' }} />
+                  <div className="skeleton-shimmer" style={{ width: '85%', height: '14px' }} />
+                </div>
+                <div className="skeleton-shimmer" style={{ width: '80px', height: '18px', borderRadius: '4px' }} />
+              </div>
+            ))}
+          </div>
         )}
 
         {!loading && projectsList.length === 0 && (

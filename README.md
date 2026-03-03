@@ -51,3 +51,9 @@ I am a frontend developer and open-source contributor from **Madhesh, Nepal**, b
 </p>
 
 <p align="center"><a href="https://github.com/drj7zz?tab=repositories"><b>Explore my live GitHub projects</b></a></p>
+
+## 📄 License
+
+This repository is distributed under the [MIT License](./LICENSE).
+
+Built with precision by [Dirghraj Giri (DRJ7ZZ)](https://github.com/drj7zz).
