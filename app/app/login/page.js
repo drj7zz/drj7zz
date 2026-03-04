@@ -32,6 +32,15 @@ function UserLoginPageContent() {
     const err = searchParams?.get('error');
     if (err === 'google_not_configured') {
       setError('Google Sign-In is not configured yet. Please use username & password.');
+    } else if (err === 'google_token') {
+      const detail = searchParams?.get('detail');
+      setError(detail === 'invalid_client'
+        ? 'Google rejected the OAuth client credentials. Update GOOGLE_CLIENT_SECRET in Vercel and redeploy.'
+        : detail === 'invalid_grant'
+          ? 'This Google sign-in code expired or was already used. Start sign-in again.'
+          : detail === 'redirect_uri_mismatch'
+            ? 'Google rejected the callback URL. Check the exact production URI in Google Cloud Console.'
+            : 'Google could not verify this callback. Check the OAuth settings and try again.');
     } else if (err?.startsWith('google_')) {
       setError(`Google Sign-In failed (${err.replace('google_', '')}). Please try username/password.`);
     }

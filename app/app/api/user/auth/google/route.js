@@ -5,6 +5,7 @@ import crypto from 'crypto';
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_STATE_COOKIE = 'drj_google_oauth_state';
+const GOOGLE_RETURN_COOKIE = 'drj_google_oauth_return';
 
 function googleConfigured() {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
@@ -12,7 +13,7 @@ function googleConfigured() {
 
 function redirectUri(request) {
   const url = new URL(request.url);
-  return `${url.origin}/api/user/auth/google/callback`;
+  return process.env.GOOGLE_REDIRECT_URI || `${url.origin}/api/user/auth/google/callback`;
 }
 
 /**
@@ -33,7 +34,17 @@ export async function GET(request) {
   // CSRF protection: random state stored in a short-lived cookie
   const state = crypto.randomBytes(24).toString('hex');
   const cookieStore = await cookies();
+  const requestedReturn = searchParams.get('next');
+  const returnPath = requestedReturn && requestedReturn.startsWith('/') && !requestedReturn.startsWith('//')
+    ? requestedReturn
+    : '/login';
   cookieStore.set(GOOGLE_STATE_COOKIE, state, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 600
+  });
+  cookieStore.set(GOOGLE_RETURN_COOKIE, returnPath, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',

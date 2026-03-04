@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   Clock, ChevronDown, ChevronUp, RefreshCw, Bookmark, BookmarkCheck,
   Search, X, Share2, Check, Copy, Sparkles, BookOpen
@@ -17,6 +17,7 @@ export default function BlogPage() {
   const [selectedTag, setSelectedTag] = useState('All');
   const [copiedCodeId, setCopiedCodeId] = useState(null);
   const [copiedShareId, setCopiedShareId] = useState(null);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     async function loadBlogs() {
@@ -92,6 +93,14 @@ export default function BlogPage() {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  useEffect(() => {
+    const hashId = window.location.hash.slice(1);
+    if (hashId && blogs.some((post) => post.id === hashId)) {
+      setExpandedId(hashId);
+      requestAnimationFrame(() => document.getElementById(hashId)?.scrollIntoView({ block: 'start' }));
+    }
+  }, [blogs]);
+
   const copySnippet = (codeText, snippetId) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(codeText);
@@ -155,9 +164,10 @@ export default function BlogPage() {
 
       {/* ─── Search and Tag Filters ─── */}
       <div className="blog-controls-bar">
-        <div className="blog-search-wrap">
+        <form className="blog-search-wrap" onSubmit={(e) => { e.preventDefault(); searchInputRef.current?.focus(); }}>
           <Search size={15} className="blog-search-icon" />
           <input
+            ref={searchInputRef}
             type="text"
             className="blog-search-input"
             placeholder="Search notes by keyword or concept..."
@@ -175,7 +185,10 @@ export default function BlogPage() {
               <X size={14} />
             </button>
           )}
-        </div>
+          <button type="submit" className="blog-search-submit" aria-label="Search notes" title="Search notes">
+            <Search size={14} /> <span>Search</span>
+          </button>
+        </form>
 
         <div className="blog-tag-filters" role="tablist" aria-label="Filter notes by tag">
           {allTags.map((tag) => (

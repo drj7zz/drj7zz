@@ -15,9 +15,12 @@ export default function ConnectPage() {
   const [authForm, setAuthForm] = useState({ username: '', password: '', remember: true });
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [googleConfigured, setGoogleConfigured] = useState(false);
+  const [authChoice, setAuthChoice] = useState('password');
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [authNotice, setAuthNotice] = useState('');
   const chatBodyRef = React.useRef(null);
 
   useEffect(() => {
@@ -34,6 +37,28 @@ export default function ConnectPage() {
       }
     }
     loadLinks();
+    fetch('/api/user/auth/google?status=1')
+      .then((res) => (res.ok ? res.json() : { configured: false }))
+      .then((data) => setGoogleConfigured(Boolean(data.configured)))
+      .catch(() => setGoogleConfigured(false));
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('welcome')) setAuthNotice('Google account connected. Your private thread is ready.');
+    if (params.get('error') === 'google_token') {
+      const detail = params.get('detail');
+      const message = detail === 'invalid_client'
+        ? 'Google rejected the OAuth client credentials. Update GOOGLE_CLIENT_SECRET in Vercel and redeploy.'
+        : detail === 'invalid_grant'
+          ? 'This Google sign-in code expired or was already used. Start sign-in again.'
+          : detail === 'redirect_uri_mismatch'
+            ? 'Google rejected the callback URL. Check the exact production URI in Google Cloud Console.'
+            : 'Google could not verify this callback. Check the OAuth settings and try again.';
+      setAuthError(message);
+    } else if (params.get('error')?.startsWith('google_')) {
+      setAuthError('Google sign-in could not be completed. Please try again or use username and password.');
+    }
   }, []);
 
   // Chat: check session, then poll messages
@@ -128,6 +153,8 @@ export default function ConnectPage() {
     }
   };
 
+  const usePrompt = (prompt) => setDraft(prompt);
+
   const copyEmail = async () => {
     try {
       await navigator.clipboard.writeText('giridirghraj@gmail.com');
@@ -153,8 +180,8 @@ export default function ConnectPage() {
       {/* ─── Direct Messages Chatbox (Placed Above) ─── */}
       <div className="chat-panel" style={{ marginBottom: '40px' }}>
         <div className="chat-head">
-          <MessageCircle size={16} />
-          Direct Messages with DRJ
+          <span className="chat-head-title"><MessageCircle size={16} /> Direct Messages with DRJ</span>
+          <span className={`chat-status ${chatUser ? 'online' : ''}`}><span /> {chatUser ? 'Thread active' : 'Private channel'}</span>
           {chatUser && (
             <button type="button" onClick={handleLogout}><LogOut size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: '-2px' }} />{chatUser.username} · Log out</button>
           )}
@@ -164,10 +191,24 @@ export default function ConnectPage() {
           <div className="chat-auth"><p className="chat-hint">Checking session status…</p></div>
         ) : !chatUser ? (
           <form className="chat-auth" onSubmit={handleChatAuth}>
+            {authNotice && <div className="chat-success"><Check size={14} /> {authNotice}</div>}
             <p className="chat-hint">
               <strong>Direct Communication Channel:</strong> Authenticate or register an account to initiate a direct message thread. Messages are securely stored and monitored directly by DRJ.
             </p>
             {authError && <div className="chat-error">{authError}</div>}
+            <div className="chat-auth-choice" role="tablist" aria-label="Choose a chat sign-in method">
+              <button type="button" className={authChoice === 'password' ? 'active' : ''} onClick={() => setAuthChoice('password')}>Username &amp; password</button>
+              <button type="button" className={authChoice === 'google' ? 'active' : ''} onClick={() => setAuthChoice('google')}>Google</button>
+            </div>
+            {authChoice === 'google' ? (
+              <div className="chat-google-choice">
+                <p className="chat-hint">Use your Google account to create or reopen your chat thread.</p>
+                <a className="chat-google-button" href="/api/user/auth/google?next=%2Fconnect">
+                  <span className="google-glyph">G</span> Continue with Google
+                </a>
+                {!googleConfigured && <p className="chat-hint">Google sign-in is not configured on this deployment yet.</p>}
+              </div>
+            ) : <>
             <input
               type="text"
               placeholder="Username (3–20 letters/numbers)"
@@ -220,12 +261,22 @@ export default function ConnectPage() {
                 {authMode === 'login' ? <><MessageCircle size={13} /> Log in to chat</> : <><MessageCircle size={13} /> Create account &amp; chat</>}
               </button>
             </div>
+            </>}
           </form>
         ) : (
           <>
             <div className="chat-body" ref={chatBodyRef}>
               {messages.length === 0 && (
-                <p className="chat-hint" style={{ margin: 'auto' }}>Say hi — DRJ will get back to you here.</p>
+                <div className="chat-empty-state">
+                  <div className="chat-empty-icon"><MessageCircle size={20} /></div>
+                  <strong>Start the conversation</strong>
+                  <p>Ask about a project, collaboration, or anything you found interesting here.</p>
+                  <div className="chat-prompts">
+                    {['Tell me about your latest project', 'I have a collaboration idea', 'Can we talk about frontend work?'].map((prompt) => (
+                      <button type="button" key={prompt} onClick={() => usePrompt(prompt)}>{prompt}</button>
+                    ))}
+                  </div>
+                </div>
               )}
               {messages.map((m, idx) => (
                 <div className={`chat-bubble ${m.from === 'user' ? 'me' : 'them'}`} key={idx}>
@@ -249,6 +300,7 @@ export default function ConnectPage() {
                 <Send size={13} /> Send
               </button>
             </form>
+            <div className="chat-form-meta"><span>Messages are private and saved to your thread.</span><span>{draft.length}/2000</span></div>
           </>
         )}
       </div>
