@@ -135,6 +135,7 @@ export default function ConnectPage() {
     e.preventDefault();
     const text = draft.trim();
     if (!text || sending) return;
+    setAuthError('');
     setSending(true);
     try {
       const res = await fetch('/api/chat/messages', {
@@ -143,6 +144,10 @@ export default function ConnectPage() {
         body: JSON.stringify({ text })
       });
       const data = await res.json();
+      if (res.status === 401) {
+        setChatUser(null);
+        throw new Error('Your chat session expired. Please sign in again.');
+      }
       if (!res.ok) throw new Error(data.error || 'Failed to send.');
       setMessages(prev => [...prev, data.message]);
       setDraft('');
@@ -297,9 +302,10 @@ export default function ConnectPage() {
                 maxLength={2000}
               />
               <button type="submit" disabled={sending || !draft.trim()}>
-                <Send size={13} /> Send
+                <Send size={13} /> {sending ? 'Sending…' : 'Send'}
               </button>
             </form>
+            {authError && <div className="chat-send-error" role="alert">{authError}</div>}
             <div className="chat-form-meta"><span>Messages are private and saved to your thread.</span><span>{draft.length}/2000</span></div>
           </>
         )}
