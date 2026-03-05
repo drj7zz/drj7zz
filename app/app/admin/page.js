@@ -228,12 +228,17 @@ export default function AdminDashboardPage() {
   const sendReply = async (e) => {
     e.preventDefault();
     const text = inboxDraft.trim();
-    if (!text || !activeThread) return;
+    const recipient = typeof activeThread === 'string' ? activeThread.trim().toLowerCase() : '';
+    if (!text) return;
+    if (!recipient) {
+      showFeedback('error', 'Select a conversation before replying.');
+      return;
+    }
     try {
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, user: activeThread })
+        body: JSON.stringify({ text, user: recipient })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send');
