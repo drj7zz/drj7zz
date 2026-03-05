@@ -238,7 +238,7 @@ export default function AdminDashboardPage() {
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, user: recipient })
+        body: JSON.stringify({ text, recipient })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send');
