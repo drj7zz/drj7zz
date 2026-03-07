@@ -34,7 +34,9 @@ export default function AdminDashboardPage() {
   const [activeThread, setActiveThread] = useState(null);
   const [threadMessages, setThreadMessages] = useState([]);
   const [inboxDraft, setInboxDraft] = useState('');
+  const [chatTransitionKey, setChatTransitionKey] = useState(0);
   const inboxBodyRef = React.useRef(null);
+
 
   const router = useRouter();
 
@@ -216,6 +218,8 @@ export default function AdminDashboardPage() {
 
   const openThread = async (username) => {
     setActiveThread(username);
+    setThreadMessages([]);
+    setChatTransitionKey(k => k + 1);
     try {
       const res = await fetch(`/api/chat/messages?user=${encodeURIComponent(username)}`);
       if (res.ok) {
@@ -238,7 +242,7 @@ export default function AdminDashboardPage() {
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, recipient })
+        body: JSON.stringify({ text, user: recipient })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send');
@@ -662,7 +666,8 @@ export default function AdminDashboardPage() {
               {activeThread ? (
                 <>
                   <div className="chat-head">Chat with {activeThread}</div>
-                  <div className="chat-body" ref={inboxBodyRef}>
+                  <div className="chat-body inbox-chat-body" key={chatTransitionKey} ref={inboxBodyRef}>
+
                     {threadMessages.map((m, idx) => (
                       <div className={`chat-bubble ${m.from === 'admin' ? 'me' : 'them'}`} key={idx}>
                         {m.text}

@@ -96,7 +96,54 @@ main { flex: 1; }
   margin: 0;
 }
 
-.brand-mark { width: 26px; height: 26px; object-fit: cover; border-radius: 50%; }
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Spinning ring around the nav profile image */
+.brand {
+  position: relative;
+}
+
+.brand::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from var(--nav-ring-angle, 0deg),
+    var(--line) 0%,
+    var(--line) 35%,
+    var(--accent) 65%,
+    #83e7f6 85%,
+    #ffffff 95%,
+    var(--line) 100%
+  );
+  animation: navRingSpin 3.5s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@property --nav-ring-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes navRingSpin {
+  from { --nav-ring-angle: 0deg; }
+  to   { --nav-ring-angle: 360deg; }
+}
+
 
 .nav-controls {
   display: flex;
@@ -560,7 +607,20 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
 @media (prefers-reduced-motion: reduce) {
   .hero-orbit, .hero-orbit-icon { animation: none; }
   .hero-portrait-frame, .hero-portrait-glow-halo, .hero-portrait-border-line { animation: none; }
+  .brand::before { animation: none; }
+  .inbox-chat-body { animation: none; }
 }
+
+/* Fade-in animation when switching threads in admin inbox */
+.inbox-chat-body {
+  animation: chatBodyIn 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes chatBodyIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 
 .cta-row, .connect-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
