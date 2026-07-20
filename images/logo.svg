@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="DRJ logo">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#58a6ff"/>
+      <stop offset="1" stop-color="#7be1ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="240" rx="28" fill="url(#g)"/>
+  <circle cx="190" cy="40" r="26" fill="rgba(255,255,255,0.12)"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Nunito, system-ui, sans-serif" font-weight="700" font-size="64" fill="#02111a">DRJ</text>
+</svg>

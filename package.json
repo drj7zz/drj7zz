@@ -1,0 +1,11 @@
+{
+  "name": "drj7zz-site",
+  "version": "1.0.0",
+  "description": "Personal profile site for DRJ",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
