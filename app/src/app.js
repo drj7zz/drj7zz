@@ -147,7 +147,7 @@
             h('div', { className: 'cta-row' }, h('a', { className: 'button', href: '#connect' }, 'Connect with me ', h(Icon, { className: 'fa-solid fa-arrow-right' })), h('a', { className: 'button ghost', href: 'https://github.com/drj7zz', target: '_blank', rel: 'noopener noreferrer' }, h(Icon, { className: 'fa-brands fa-github' }), ' View GitHub'))
           ),
           h('aside', { className: 'glass-panel identity-card', 'aria-label': 'Profile summary' },
-            h('div', { className: 'card-top' }, h('div', { className: 'avatar-wrap' }, h('span', { className: 'avatar-crop' }, h('img', { className: 'avatar', src: 'assets/images/drj.png', alt: 'DRJ profile' }))), h('span', { className: 'availability' }, h('i'), ' Available to collaborate')),
+            h('div', { className: 'card-top' }, h('div', { className: 'avatar-wrap' }, h('span', { className: 'avatar-crop' }, h('img', { className: 'avatar', src: 'assets/images/profile.jpg', alt: 'DRJ profile' }))), h('span', { className: 'availability' }, h('i'), ' Available to collaborate')),
             h('div', null, h('h2', null, 'DRJ'), h('p', null, 'Developer, learner, open-source enthusiast.')),
             h('div', { className: 'card-code' }, '01 / MADHESH, NEPAL')
           )
