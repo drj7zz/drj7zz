@@ -57,7 +57,7 @@ I am a frontend developer and open-source learner from **Madhesh, Nepal**. I lik
 </p>
 ## A Little More
 
-<img align="right" src="./app/assets/images/drj.png" alt="DRJ" width="130">
+<img align="right" src="./app/assets/images/profile.jpg" alt="DRJ" width="130">
 
 - Pursuing a Bachelor of Information Technology (BIT) in Parsa, Nepal
 - Interested in accessible UI, clean code, and thoughtful web experiences
