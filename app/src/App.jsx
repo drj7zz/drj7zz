@@ -28,17 +28,16 @@ function LiveUpdates() {
   const [latestCommit, setLatestCommit] = useState(null);
 
   useEffect(() => {
-    fetch('https://api.github.com/users/drj7zz/events/public?per_page=10')
+    fetch('https://api.github.com/repos/drj7zz/drj7zz/commits?per_page=1')
       .then(res => res.json())
       .then(data => {
-        const pushEvents = data.filter(e => e.type === 'PushEvent');
-        if (pushEvents.length > 0 && pushEvents[0].payload.commits.length > 0) {
-          const commit = pushEvents[0].payload.commits[0];
+        if (Array.isArray(data) && data.length > 0) {
+          const commit = data[0];
           setLatestCommit({
-            message: commit.message.split('\n')[0],
-            repo: pushEvents[0].repo.name,
-            url: `https://github.com/${pushEvents[0].repo.name}/commit/${commit.sha}`,
-            time: new Date(pushEvents[0].created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            message: commit.commit.message.split('\n')[0],
+            repo: 'drj7zz/drj7zz',
+            url: commit.html_url,
+            time: new Date(commit.commit.author.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
           });
         }
       })
@@ -87,25 +86,23 @@ function GitHubActivity() {
 
     const loadActivity = async () => {
       try {
-        const [repoResponse, eventResponse] = await Promise.all([
+        const [repoResponse, commitResponse] = await Promise.all([
           fetch('https://api.github.com/users/drj7zz/repos?sort=updated&per_page=6'),
-          fetch('https://api.github.com/users/drj7zz/events/public?per_page=30')
+          fetch('https://api.github.com/repos/drj7zz/drj7zz/commits?per_page=12')
         ]);
-        if (!repoResponse.ok || !eventResponse.ok) throw new Error('GitHub request failed');
+        if (!repoResponse.ok || !commitResponse.ok) throw new Error('GitHub request failed');
 
         const repoData = await repoResponse.json();
-        const eventData = await eventResponse.json();
-        const commitData = eventData
-          .filter((event) => event.type === 'PushEvent')
-          .flatMap((event) => (event.payload.commits || []).map((commit) => ({
-            id: `${event.id}-${commit.sha}`,
-            message: commit.message.split('\n')[0],
-            repository: event.repo.name,
-            url: `https://github.com/${event.repo.name}/commit/${commit.sha}`,
-            date: event.created_at,
-            version: commit.sha.substring(0, 7)
-          })))
-          .slice(0, 12);
+        const rawCommits = await commitResponse.json();
+        const commitData = (Array.isArray(rawCommits) ? rawCommits : [])
+          .map((item) => ({
+            id: item.sha,
+            message: item.commit.message.split('\n')[0],
+            repository: 'drj7zz/drj7zz',
+            url: item.html_url,
+            date: item.commit.author.date,
+            version: item.sha.substring(0, 7)
+          }));
 
         if (active) {
           setRepositories(repoData);
