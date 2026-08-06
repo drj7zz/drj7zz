@@ -66,7 +66,7 @@ function GitHubActivity() {
 
   useEffect(() => {
     let active = true;
-    const cacheKey = 'drj-github-activity-v1';
+    const cacheKey = 'drj-github-activity-v2';
     const cacheDuration = 300000;
     let hasFreshCache = false;
     let hasCachedActivity = false;
