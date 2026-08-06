@@ -66,7 +66,7 @@ function GitHubActivity() {
 
   useEffect(() => {
     let active = true;
-    const cacheKey = 'drj-github-activity-v2';
+    const cacheKey = 'drj-github-activity-v3';
     const cacheDuration = 300000;
     let hasFreshCache = false;
     let hasCachedActivity = false;
@@ -86,32 +86,64 @@ function GitHubActivity() {
 
     const loadActivity = async () => {
       try {
-        const [repoResponse, commitResponse] = await Promise.all([
-          fetch('https://api.github.com/users/drj7zz/repos?sort=updated&per_page=6'),
-          fetch('https://api.github.com/repos/drj7zz/drj7zz/commits?per_page=12')
-        ]);
-        if (!repoResponse.ok || !commitResponse.ok) throw new Error('GitHub request failed');
-
+        const repoResponse = await fetch('https://api.github.com/users/drj7zz/repos?sort=updated&per_page=6');
+        if (!repoResponse.ok) throw new Error('GitHub repos request failed');
         const repoData = await repoResponse.json();
-        const rawCommits = await commitResponse.json();
-        const commitData = (Array.isArray(rawCommits) ? rawCommits : [])
-          .map((item) => ({
-            id: item.sha,
-            message: item.commit.message.split('\n')[0],
-            repository: 'drj7zz/drj7zz',
-            url: item.html_url,
-            date: item.commit.author.date,
-            version: item.sha.substring(0, 7)
-          }));
+
+        // Fetch commits and tags for top 3 repos to avoid rate limits
+        const topRepos = repoData.slice(0, 3);
+        const commitsPromises = topRepos.map(repo => 
+          fetch(`https://api.github.com/repos/drj7zz/${repo.name}/commits?per_page=5`)
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+        );
+        const tagsPromises = topRepos.map(repo => 
+          fetch(`https://api.github.com/repos/drj7zz/${repo.name}/tags`)
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+        );
+
+        const commitsResults = await Promise.all(commitsPromises);
+        const tagsResults = await Promise.all(tagsPromises);
+
+        let allCommits = [];
+
+        topRepos.forEach((repo, index) => {
+          const rawCommits = commitsResults[index];
+          const tagsData = tagsResults[index];
+
+          const tagsMap = {};
+          if (Array.isArray(tagsData)) {
+            tagsData.forEach(tag => {
+              tagsMap[tag.commit.sha] = tag.name;
+            });
+          }
+
+          if (Array.isArray(rawCommits)) {
+            rawCommits.forEach(item => {
+              allCommits.push({
+                id: item.sha,
+                message: item.commit.message.split('\n')[0],
+                repository: `drj7zz/${repo.name}`,
+                url: item.html_url,
+                date: item.commit.author.date,
+                version: item.sha.substring(0, 7),
+                tag: tagsMap[item.sha] || null
+              });
+            });
+          }
+        });
+
+        allCommits.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (active) {
           setRepositories(repoData);
-          setCommits(commitData);
+          setCommits(allCommits);
           setStatus('ready');
           sessionStorage.setItem(cacheKey, JSON.stringify({
             timestamp: Date.now(),
             repositories: repoData,
-            commits: commitData
+            commits: allCommits
           }));
         }
       } catch (_error) {
@@ -163,19 +195,34 @@ function GitHubActivity() {
             </div>
           </div>
           <div className="github-column commit-column">
-            <h3>Commit History & Versions</h3>
+            <h3>Commit History (By Repository)</h3>
             <div className="commit-list expanded-commits">
-              {hasContent && commits.length > 0 ? commits.map((commit) => (
-                <a className="commit-item timeline-item" href={commit.url} target="_blank" rel="noopener noreferrer" key={commit.id}>
-                  <div className="timeline-marker"></div>
-                  <div className="timeline-content">
-                    <span className="commit-message">{commit.message}</span>
-                    <span className="commit-meta">
-                      <strong>{commit.repository}</strong> • v.{commit.version} • {new Date(commit.date).toLocaleDateString()}
-                    </span>
+              {hasContent && commits.length > 0 ? (() => {
+                const groupedCommits = {};
+                commits.forEach(c => {
+                  if (!groupedCommits[c.repository]) groupedCommits[c.repository] = [];
+                  groupedCommits[c.repository].push(c);
+                });
+                return Object.entries(groupedCommits).map(([repoName, repoCommits]) => (
+                  <div key={repoName} className="repo-commit-group">
+                    <h4 className="repo-group-title"><Icon className="fa-brands fa-github-alt" /> {repoName}</h4>
+                    {repoCommits.map(commit => (
+                      <a className="commit-item timeline-item" href={commit.url} target="_blank" rel="noopener noreferrer" key={commit.id}>
+                        <div className="timeline-marker"></div>
+                        <div className="timeline-content">
+                          <span className="commit-message">
+                            {commit.tag && <span className="release-badge"><Icon className="fa-solid fa-tag" /> {commit.tag}</span>}
+                            {commit.message}
+                          </span>
+                          <span className="commit-meta">
+                            v.{commit.version} • {new Date(commit.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </a>
+                    ))}
                   </div>
-                </a>
-              )) : <p className="github-status">{hasContent ? 'No recent public commits found.' : 'Loading recent commits...'}</p>}
+                ));
+              })() : <p className="github-status">{hasContent ? 'No recent public commits found.' : 'Loading recent commits...'}</p>}
             </div>
           </div>
         </div>

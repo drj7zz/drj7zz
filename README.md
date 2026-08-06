@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Frontend_Developer-0B2634?style=for-the-badge&logo=html5&logoColor=83E7F6" alt="Frontend developer">
   <img src="https://img.shields.io/badge/Nepal-0B2634?style=for-the-badge&logo=googlemaps&logoColor=F5B77C" alt="Nepal">
   <img src="https://img.shields.io/badge/Open_Source-0B2634?style=for-the-badge&logo=github&logoColor=C7A8FF" alt="Open source">
-  <img src="https://img.shields.io/badge/Release-v1.1-0B2634?style=for-the-badge&logo=git&logoColor=83E7F6" alt="Release v1.1">
+  <a href="https://github.com/drj7zz/drj7zz/releases/latest"><img src="https://img.shields.io/github/v/release/drj7zz/drj7zz?color=83E7F6&label=Latest%20Release&style=for-the-badge&logo=git" alt="Latest Release"></a>
 </p>
 
 <p align="center">
@@ -51,6 +51,9 @@ I am a frontend developer and open-source learner from **Madhesh, Nepal**. I lik
 </p>
 
 <p align="center"><a href="https://github.com/drj7zz?tab=repositories"><b>Explore my live GitHub projects</b></a></p>
+
+## 🚀 Recent Updates & Releases
+- **v1.1.2** Release: Fully responsive mobile view, enhanced GitHub live activity grouped by repositories, and included tags/releases tracking.
 
 ---
 <p align="center"><i>Always learning. Always building.</i></p>

@@ -190,6 +190,17 @@ button { font: inherit; }
 .expanded-commits::-webkit-scrollbar { width: 6px; }
 .expanded-commits::-webkit-scrollbar-thumb { background: rgba(131, 231, 246, 0.3); border-radius: 10px; }
 
+.repo-group-title {
+  margin: 16px 0 10px;
+  color: var(--aqua);
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.repo-commit-group:first-child .repo-group-title { margin-top: 0; }
+
 .timeline-item {
   position: relative;
   display: flex;
@@ -222,7 +233,21 @@ button { font: inherit; }
   display: flex;
   flex-direction: column;
 }
-.commit-message { display: block; overflow: hidden; margin-bottom: 6px; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.commit-message { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; overflow: hidden; margin-bottom: 6px; font-size: 13px; font-weight: 700; text-overflow: ellipsis; }
+.release-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(131, 231, 246, 0.15);
+  color: var(--aqua);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid rgba(131, 231, 246, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .github-status { position: relative; z-index: 1; margin: 22px 0 0; color: var(--muted); font-size: 13px; }
 
 .connect { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; margin: 0 0 54px; padding: 21px 28px; }
@@ -245,7 +270,9 @@ button { font: inherit; }
 
 @media (max-width: 780px) {
   .page-shell { width: min(100% - 28px, 620px); }
-  .nav { top: 10px; margin-top: 10px; padding-left: 14px; }
+  .nav { top: 10px; margin-top: 10px; padding-left: 14px; flex-wrap: wrap; }
+  .nav-links { display: none; width: 100%; flex-direction: column; align-items: flex-start; padding: 10px 0; gap: 12px; }
+  .nav-links.open { display: flex; }
   .nav-toggle { display: grid; place-items: center; }
   .dropdown-menu { top: calc(100% + 10px); }
   .hero, .content-grid { grid-template-columns: 1fr; }
