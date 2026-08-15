@@ -52,6 +52,17 @@ I am a frontend developer and open-source learner from **Madhesh, Nepal**. I lik
 
 <p align="center"><a href="https://github.com/drj7zz?tab=repositories"><b>Explore my live GitHub projects</b></a></p>
 
+## Vercel GitHub activity setup
+
+The portfolio uses a Vercel serverless route to load GitHub activity. This keeps the GitHub token out of the browser and caches results for five minutes.
+
+1. Create a GitHub **classic personal access token** with the `public_repo` scope.
+2. In Vercel, open the project: **Settings → Environment Variables**.
+3. Add `GITHUB_TOKEN` and paste the token value. Select Production, Preview, and Development as needed.
+4. Redeploy the project.
+
+Do not add the token to `App.jsx`, commit a real `.env` file, or expose it through a `VITE_` environment variable.
+
 ## 🚀 Recent Updates & Releases
 - **v1.1.2** Release: Fully responsive mobile view, enhanced GitHub live activity grouped by repositories, and included tags/releases tracking.
 

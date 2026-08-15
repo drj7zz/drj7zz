@@ -9,16 +9,40 @@ const socialLinks = [
 
 const facts = [
   ['Location', ['Parsa, Madhesh', 'Nepal']],
-  ['Education', ['Pursuing BIT', 'Bachelor in IT']],
+  ['Education', ['Bachelor of Information', 'Technology (BIT)']],
   ['Discipline', ['Frontend', 'Development']],
-  ['Mode', ['Always', 'Learning']]
+  ['Approach', ['Curious, reliable', 'and collaborative']]
+];
+
+const heroSignals = [
+  ['fa-solid fa-mobile-screen-button', 'Responsive-first'],
+  ['fa-solid fa-universal-access', 'Accessible by design'],
+  ['fa-solid fa-people-group', 'Open to collaboration']
 ];
 
 const skills = [
-  ['fa-brands fa-js', 'JavaScript', 'Interactive web experiences and browser fundamentals.', 'LEARN'],
-  ['fa-solid fa-window-maximize', 'Frontend UI', 'Responsive layouts, semantic markup, and interaction polish.', 'BUILD'],
-  ['fa-solid fa-code-branch', 'Open Source', 'Learning through shared tools, code, and community.', 'EXPLORE']
+  ['fa-brands fa-js', 'JavaScript', 'Building interactive, maintainable experiences with strong browser fundamentals.', 'CORE'],
+  ['fa-solid fa-window-maximize', 'Frontend Engineering', 'Creating responsive layouts, semantic markup, and polished user interactions.', 'BUILD'],
+  ['fa-solid fa-code-branch', 'Open Source', 'Learning through real repositories, pull requests, and collaborative delivery.', 'GROW']
 ];
+
+const careerStrengths = [
+  ['01', 'Product-minded UI', 'I translate an idea into a clear interface that feels useful from the first interaction.'],
+  ['02', 'Detail with purpose', 'Accessibility, responsive behavior, and readable code are part of the work—not a final pass.'],
+  ['03', 'Ready to contribute', 'I am growing through open source and looking for frontend opportunities where I can learn fast and ship thoughtfully.']
+];
+
+// Keep important work visible even when it is not among GitHub's most recently updated repos.
+const featuredProjects = [
+  { id: 'featured-mycontribution', name: 'MyContribution', html_url: 'https://github.com/drj7zz?tab=repositories&q=MyContribution', language: 'Featured project' },
+  { id: 'featured-pillrequest', name: 'PillRequest', html_url: 'https://github.com/drj7zz?tab=repositories&q=PillRequest', language: 'Featured project' },
+  { id: 'featured-collaboration-fepo', name: 'Collaboration FEPO', html_url: 'https://github.com/drj7zz?tab=repositories&q=Collaboration+FEPO', language: 'Featured collaboration' }
+];
+
+function withFeaturedProjects(repositories) {
+  const repositoryNames = new Set(repositories.map(({ name }) => name.toLowerCase()));
+  return [...featuredProjects.filter(({ name }) => !repositoryNames.has(name.toLowerCase())), ...repositories];
+}
 
 function Icon({ className }) {
   return <i className={className} aria-hidden="true" />;
@@ -28,20 +52,41 @@ function LiveUpdates() {
   const [latestCommit, setLatestCommit] = useState(null);
 
   useEffect(() => {
-    fetch('https://api.github.com/repos/drj7zz/drj7zz/commits?per_page=1')
-      .then(res => res.json())
+    const setLatestFromCache = () => {
+      try {
+        const cached = JSON.parse(sessionStorage.getItem('drj-github-activity-v3'));
+        const commit = cached?.commits?.[0];
+        if (!commit) return false;
+        setLatestCommit({
+          message: commit.message,
+          repo: commit.repository,
+          url: commit.url,
+          time: new Date(commit.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        return true;
+      } catch (_error) {
+        return false;
+      }
+    };
+
+    setLatestFromCache();
+    fetch('/api/github-activity')
+      .then(res => {
+        if (!res.ok) throw new Error('GitHub activity request failed');
+        return res.json();
+      })
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const commit = data[0];
+        if (data.latestCommit) {
+          const commit = data.latestCommit;
           setLatestCommit({
-            message: commit.commit.message.split('\n')[0],
-            repo: 'drj7zz/drj7zz',
-            url: commit.html_url,
-            time: new Date(commit.commit.author.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            message: commit.message,
+            repo: commit.repository,
+            url: commit.url,
+            time: new Date(commit.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
           });
         }
       })
-      .catch(() => {});
+      .catch(() => setLatestFromCache());
   }, []);
 
   if (!latestCommit) return null;
@@ -63,6 +108,9 @@ function GitHubActivity() {
   const [status, setStatus] = useState('loading');
   const [repositories, setRepositories] = useState([]);
   const [commits, setCommits] = useState([]);
+  const [pullRequests, setPullRequests] = useState([]);
+  const [contributionRepositories, setContributionRepositories] = useState([]);
+  const [contributionStreak, setContributionStreak] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -78,6 +126,9 @@ function GitHubActivity() {
       if (hasCachedActivity) {
         setRepositories(cached.repositories);
         setCommits(cached.commits);
+        setPullRequests(cached.pullRequests || []);
+        setContributionRepositories(cached.contributionRepositories || []);
+        setContributionStreak(cached.contributionStreak || null);
         setStatus('ready');
       }
     } catch (_error) {
@@ -86,64 +137,25 @@ function GitHubActivity() {
 
     const loadActivity = async () => {
       try {
-        const repoResponse = await fetch('https://api.github.com/users/drj7zz/repos?sort=updated&per_page=6');
+        const repoResponse = await fetch('/api/github-activity');
         if (!repoResponse.ok) throw new Error('GitHub repos request failed');
-        const repoData = await repoResponse.json();
-
-        // Fetch commits and tags for top 3 repos to avoid rate limits
-        const topRepos = repoData.slice(0, 3);
-        const commitsPromises = topRepos.map(repo => 
-          fetch(`https://api.github.com/repos/drj7zz/${repo.name}/commits?per_page=5`)
-            .then(res => res.ok ? res.json() : [])
-            .catch(() => [])
-        );
-        const tagsPromises = topRepos.map(repo => 
-          fetch(`https://api.github.com/repos/drj7zz/${repo.name}/tags`)
-            .then(res => res.ok ? res.json() : [])
-            .catch(() => [])
-        );
-
-        const commitsResults = await Promise.all(commitsPromises);
-        const tagsResults = await Promise.all(tagsPromises);
-
-        let allCommits = [];
-
-        topRepos.forEach((repo, index) => {
-          const rawCommits = commitsResults[index];
-          const tagsData = tagsResults[index];
-
-          const tagsMap = {};
-          if (Array.isArray(tagsData)) {
-            tagsData.forEach(tag => {
-              tagsMap[tag.commit.sha] = tag.name;
-            });
-          }
-
-          if (Array.isArray(rawCommits)) {
-            rawCommits.forEach(item => {
-              allCommits.push({
-                id: item.sha,
-                message: item.commit.message.split('\n')[0],
-                repository: `drj7zz/${repo.name}`,
-                url: item.html_url,
-                date: item.commit.author.date,
-                version: item.sha.substring(0, 7),
-                tag: tagsMap[item.sha] || null
-              });
-            });
-          }
-        });
-
-        allCommits.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const activityData = await repoResponse.json();
+        const repoData = activityData.repositories;
 
         if (active) {
           setRepositories(repoData);
-          setCommits(allCommits);
+          setCommits(activityData.commits);
+          setPullRequests(activityData.pullRequests || []);
+          setContributionRepositories(activityData.contributionRepositories || []);
+          setContributionStreak(activityData.contributionStreak || null);
           setStatus('ready');
           sessionStorage.setItem(cacheKey, JSON.stringify({
             timestamp: Date.now(),
             repositories: repoData,
-            commits: allCommits
+            commits: activityData.commits,
+            contributionStreak: activityData.contributionStreak || null,
+            pullRequests: activityData.pullRequests || [],
+            contributionRepositories: activityData.contributionRepositories || []
           }));
         }
       } catch (_error) {
@@ -159,25 +171,29 @@ function GitHubActivity() {
     };
   }, []);
 
+  const visibleRepositories = withFeaturedProjects(repositories);
   const hasContent = status === 'ready';
   return (
     <section className="glass-panel github-panel" id="github" aria-labelledby="github-title">
       <div className="github-heading">
         <div>
-          <p className="section-label">03 / GitHub</p>
-          <h2 id="github-title">Building in public.</h2>
+          <p className="section-label">04 / Live GitHub work</p>
+          <h2 id="github-title">Proof of work, updated live.</h2>
+          <p className="github-intro">Projects, contributions, and pull requests are loaded from my public GitHub activity.</p>
         </div>
         <a className="github-profile-link" href="https://github.com/drj7zz" target="_blank" rel="noopener noreferrer">
           github.com/drj7zz <Icon className="fa-solid fa-arrow-up-right-from-square" />
         </a>
       </div>
       
-      {/* Added GitHub Project Live Preview Image cards */}
-      <div className="github-preview-cards">
-        <a href="https://github.com/drj7zz" target="_blank" rel="noopener noreferrer">
-          <img src="https://github-readme-streak-stats.herokuapp.com/?user=drj7zz&theme=tokyonight&hide_border=true" alt="DRJ GitHub activity" />
-        </a>
-      </div>
+      {contributionStreak && (
+        <div className="streak-card" aria-label="GitHub contribution streak">
+          <div><Icon className="fa-solid fa-fire-flame-curved" /><span>Contribution streak</span><small>All GitHub contributions, not only personal repository commits.</small></div>
+          <strong>{contributionStreak.current}<small> day current</small></strong>
+          <span className="streak-stat"><b>{contributionStreak.longest}</b> longest</span>
+          <span className="streak-stat"><b>{contributionStreak.total}</b> contributions this year</span>
+        </div>
+      )}
 
       {status === 'error' ? (
         <p className="github-status">GitHub activity is temporarily unavailable. Visit the profile directly to see the latest work.</p>
@@ -186,12 +202,18 @@ function GitHubActivity() {
           <div className="github-column">
             <h3>Recent Projects</h3>
             <div className="repo-list">
-              {hasContent ? repositories.map((repo) => (
+              {visibleRepositories.map((repo) => (
                 <a className="repo-item" href={repo.html_url} target="_blank" rel="noopener noreferrer" key={repo.id}>
-                  <span className="repo-title"><Icon className="fa-solid fa-book-bookmark" /> {repo.name}</span>
-                  <span className="repo-meta">{repo.language || 'Code'} <Icon className="fa-solid fa-star" /> {repo.stargazers_count}</span>
+                  <span className="repo-copy">
+                    <span className="repo-title"><Icon className="fa-solid fa-book-bookmark" /> {repo.name}</span>
+                    <span className="repo-description">{repo.description || 'A featured project from my GitHub portfolio.'}</span>
+                  </span>
+                  <span className="repo-meta">
+                    {repo.language || 'Code'}
+                    {typeof repo.stargazers_count === 'number' && <><Icon className="fa-solid fa-star" /> {repo.stargazers_count}</>}
+                  </span>
                 </a>
-              )) : <p className="github-status">Loading projects...</p>}
+              ))}
             </div>
           </div>
           <div className="github-column commit-column">
@@ -227,13 +249,49 @@ function GitHubActivity() {
           </div>
         </div>
       )}
+      {(pullRequests.length > 0 || contributionRepositories.length > 0) && (
+        <div className="github-content contribution-content">
+          <div className="github-column">
+            <h3>Public Pull Requests</h3>
+            <div className="commit-list expanded-commits">
+              {pullRequests.map((pullRequest) => (
+                <a className="commit-item" href={pullRequest.url} target="_blank" rel="noopener noreferrer" key={pullRequest.id}>
+                  <span className="commit-message">{pullRequest.title}</span>
+                  <span className="commit-meta">{pullRequest.repository} / {pullRequest.state}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="github-column">
+            <h3>Public Contribution Repositories</h3>
+            <div className="repo-list expanded-commits">
+              {contributionRepositories.map((repository) => (
+                <a className="repo-item" href={repository.url} target="_blank" rel="noopener noreferrer" key={repository.id}>
+                  <span className="repo-title"><Icon className="fa-solid fa-code-branch" /> {repository.name}</span>
+                  <span className="repo-meta">{repository.commits} commits / {repository.pullRequests} PRs</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [emailCopied, setEmailCopied] = useState(false);
   const closeMenu = () => setMenuOpen(false);
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText('giridirghraj@gmail.com');
+      setEmailCopied(true);
+      window.setTimeout(() => setEmailCopied(false), 2200);
+    } catch (_error) {
+      window.location.href = 'mailto:giridirghraj@gmail.com';
+    }
+  };
 
   return (
     <div className="page-shell">
@@ -247,6 +305,7 @@ function App() {
         <nav className={`nav-links${menuOpen ? ' open' : ''}`} aria-label="Portfolio sections">
           <a href="#about" onClick={closeMenu}>About</a>
           <a href="#skills" onClick={closeMenu}>Focus</a>
+          <a href="#career" onClick={closeMenu}>Career</a>
           <a href="#github" onClick={closeMenu}>GitHub</a>
           <a href="#connect" onClick={closeMenu}>Connect</a>
         </nav>
@@ -256,11 +315,16 @@ function App() {
         <section className="hero" aria-labelledby="hero-title">
           <div>
             <p className="eyebrow">Frontend developer / Nepal</p>
-            <h1 id="hero-title">Building clear<br/><span>digital surfaces.</span></h1>
-            <p className="hero-copy">I am DRJ, a developer learning in public and building thoughtful interfaces for the open web. I care about responsive detail, accessible interaction, and code that stays understandable.</p>
+            <h1 id="hero-title">Interfaces with<br/><span>clarity and intent.</span></h1>
+            <p className="hero-copy">I am DRJ, an emerging frontend developer focused on turning ideas into responsive, accessible web experiences. I combine a visual eye with practical JavaScript and a commitment to learning in public—ready to contribute thoughtful work to a real product team.</p>
             <div className="cta-row">
-              <a className="button" href="#connect">Connect with me <Icon className="fa-solid fa-arrow-right" /></a>
-              <a className="button ghost" href="https://github.com/drj7zz" target="_blank" rel="noopener noreferrer"><Icon className="fa-brands fa-github" /> View GitHub</a>
+              <a className="button" href="#github">Explore my work <Icon className="fa-solid fa-arrow-right" /></a>
+              <a className="button ghost" href="#connect"><Icon className="fa-solid fa-paper-plane" /> Start a conversation</a>
+            </div>
+            <div className="hero-signals" aria-label="Professional strengths">
+              {heroSignals.map(([icon, label]) => (
+                <span key={label}><Icon className={icon} /> {label}</span>
+              ))}
             </div>
           </div>
           <aside className="glass-panel identity-card" aria-label="Profile summary">
@@ -274,7 +338,7 @@ function App() {
             </div>
             <div>
               <h2>DRJ</h2>
-              <p>Developer, learner, open-source enthusiast.</p>
+              <p>Frontend developer · open-source contributor</p>
             </div>
             <div className="card-code">01 / MADHESH, NEPAL</div>
           </aside>
@@ -285,8 +349,9 @@ function App() {
         <div className="content-grid">
           <section className="glass-panel section-panel" id="about" aria-labelledby="about-title">
             <p className="section-label">01 / About</p>
-            <h2 id="about-title">Making the web feel considered.</h2>
-            <p>I work at the intersection of frontend development and visual design. My current focus is building polished web experiences while deepening my JavaScript and open-source practice.</p>
+            <h2 id="about-title">Designed to be useful. Built to last.</h2>
+            <p>I work where frontend engineering meets visual clarity. My goal is to create web interfaces that communicate quickly, adapt gracefully across devices, and remain easy for teams to evolve.</p>
+            <p className="kaalyug-note"><strong>Founder of KAALYUG:</strong> an open web ecosystem in progress, exploring practical tools such as digital wallets, marketplaces, and open-source projects that make online systems more useful and accessible.</p>
             <div className="facts">
               {facts.map(([label, lines]) => (
                 <div className="fact" key={label}>
@@ -299,7 +364,7 @@ function App() {
           
           <section className="glass-panel section-panel" id="skills" aria-labelledby="skills-title">
             <p className="section-label">02 / Focus</p>
-            <h2 id="skills-title">What I am working on.</h2>
+            <h2 id="skills-title">Skills I am sharpening.</h2>
             <div className="skill-list">
               {skills.map(([icon, title, description, level]) => (
                 <article className="skill" key={title}>
@@ -315,13 +380,35 @@ function App() {
           </section>
         </div>
 
+        <section className="glass-panel career-panel" id="career" aria-labelledby="career-title">
+          <div className="career-intro">
+            <p className="section-label">03 / Career direction</p>
+            <h2 id="career-title">Growing into a dependable frontend partner.</h2>
+            <p>I am building the foundation for a career in frontend development: thoughtful implementation, strong collaboration habits, and the confidence to take ownership of a user-facing experience.</p>
+            <a className="text-link" href="#connect">Open to internships, junior roles, and collaboration <Icon className="fa-solid fa-arrow-right" /></a>
+          </div>
+          <div className="strength-list">
+            {careerStrengths.map(([number, title, description]) => (
+              <article className="strength" key={number}>
+                <span>{number}</span>
+                <div><h3>{title}</h3><p>{description}</p></div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <GitHubActivity />
 
         <section className="glass-panel connect" id="connect" aria-labelledby="connect-title">
-          <Icon className="fa-solid fa-satellite-dish fa-lg" />
-          <div>
+          <div className="connect-orbit" aria-hidden="true"><Icon className="fa-solid fa-satellite-dish fa-lg" /></div>
+          <div className="connect-copy">
+            <p className="section-label">05 / Let us connect</p>
             <h2 id="connect-title">Let us build something useful.</h2>
-            <p>Find me on the platforms below or send an email.</p>
+            <p>I am open to junior frontend opportunities, internships, open-source work, and thoughtful collaborations.</p>
+            <div className="connect-actions">
+              <a className="email-action" href="mailto:giridirghraj@gmail.com"><Icon className="fa-solid fa-envelope" /> Send an email</a>
+              <button className="copy-email" type="button" onClick={copyEmail}><Icon className={`fa-solid fa-${emailCopied ? 'check' : 'copy'}`} /> {emailCopied ? 'Email copied' : 'Copy email'}</button>
+            </div>
           </div>
           <div className="socials" aria-label="Social links">
             {socialLinks.map(({ name, url, icon }) => (
@@ -334,6 +421,7 @@ function App() {
                 {...(url.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
               >
                 <Icon className={icon} />
+                <span>{name}</span>
               </a>
             ))}
           </div>
