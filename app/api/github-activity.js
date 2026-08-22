@@ -143,6 +143,7 @@ export default async function handler(_request, response) {
       commits,
       latestCommit,
       contributionStreak,
+      contributionCalendar: contributionGroups?.contributionCalendar || null,
       pullRequests,
       contributionRepositories: [...contributionRepositories.values()].sort((a, b) => (b.commits + b.pullRequests) - (a.commits + a.pullRequests))
     };
