@@ -1,5 +1,5 @@
 {
-  "name": "drj-portfolio",
+  "name": "kaalyug-portfolio",
   "version": "2.1.0",
   "private": true,
   "scripts": {
@@ -14,5 +14,12 @@
     "react-dom": "^18.3.1",
     "lucide-react": "^0.439.0",
     "framer-motion": "^11.5.4"
+  },
+  "description": "DRJ — Personal portfolio built with Next.js 14 App Router, dark blue theme, and live GitHub integration.",
+  "author": "DRJ <giridirghraj@gmail.com>",
+  "homepage": "https://giridirghraj.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drj7zz/drj7zz"
   }
 }
