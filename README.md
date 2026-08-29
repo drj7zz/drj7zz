@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Frontend_Developer-0B2634?style=for-the-badge&logo=html5&logoColor=83E7F6" alt="Frontend developer">
-  <img src="https://img.shields.io/badge/Nepal-0B2634?style=for-the-badge&logo=googlemaps&logoColor=F5B77C" alt="Nepal">
+  <img src="https://img.shields.io/badge/Frontend_Developer-0B2634?style=for-the-badge&logo=nextdotjs&logoColor=83E7F6" alt="Frontend developer">
+  <img src="https://img.shields.io/badge/Next.js_14-0B2634?style=for-the-badge&logo=react&logoColor=F5B77C" alt="Next.js 14">
+  <img src="https://img.shields.io/badge/Nepal-0B2634?style=for-the-badge&logo=googlemaps&logoColor=83E7F6" alt="Nepal">
   <img src="https://img.shields.io/badge/Open_Source-0B2634?style=for-the-badge&logo=github&logoColor=C7A8FF" alt="Open source">
-  <a href="https://github.com/drj7zz/drj7zz/releases/latest"><img src="https://img.shields.io/github/v/release/drj7zz/drj7zz?color=83E7F6&label=Latest%20Release&style=for-the-badge&logo=git" alt="Latest Release"></a>
 </p>
 
 <p align="center">
@@ -17,54 +17,46 @@
 
 ## Hey, I am DRJ
 
-I am a frontend developer and open-source learner from **Madhesh, Nepal**. I like working where clear visual design meets dependable frontend code. I am building my skills in public, learning through projects, and exploring the people and tools behind the open web.
-
-## 🛠️ Tech Stack & Tools
-
-<table>
-  <tr>
-    <td align="center" width="25%">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" width="40" height="40" alt="JavaScript" /><br>
-      <b>JavaScript</b>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="40" height="40" alt="React" /><br>
-      <b>React</b>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="40" height="40" alt="HTML5" /><br>
-      <b>HTML5</b>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="40" height="40" alt="CSS3" /><br>
-      <b>CSS3</b>
-    </td>
-  </tr>
-</table>
-
-## GitHub Live Preview
-
-<p align="center">
-  <a href="https://github.com/drj7zz">
-    <img src="https://github-readme-streak-stats.herokuapp.com/?user=drj7zz&theme=tokyonight&hide_border=true" alt="DRJ GitHub activity" style="max-width: 100%;">
-  </a>
-</p>
-
-<p align="center"><a href="https://github.com/drj7zz?tab=repositories"><b>Explore my live GitHub projects</b></a></p>
-
-## Vercel GitHub activity setup
-
-The portfolio uses a Vercel serverless route to load GitHub activity. This keeps the GitHub token out of the browser and caches results for five minutes.
-
-1. Create a GitHub **classic personal access token** with the `public_repo` scope.
-2. In Vercel, open the project: **Settings → Environment Variables**.
-3. Add `GITHUB_TOKEN` and paste the token value. Select Production, Preview, and Development as needed.
-4. Redeploy the project.
-
-Do not add the token to `App.jsx`, commit a real `.env` file, or expose it through a `VITE_` environment variable.
-
-## 🚀 Recent Updates & Releases
-- **v1.1.2** Release: Fully responsive mobile view, enhanced GitHub live activity grouped by repositories, and included tags/releases tracking.
+I am a frontend developer and open-source builder from **Madhesh, Nepal**. I build web interfaces with clarity, intent, and curiosity—combining responsive frontend engineering, semantic web accessibility, and performance fundamentals.
 
 ---
-<p align="center"><i>Always learning. Always building.</i></p>
+
+## 🛠️ Tech Stack & Architecture
+
+- **Framework**: Next.js 14 (App Router) + React 18
+- **Styling & Theme**: Semantic CSS Custom Properties with Light / Dark Blue Theme Switch
+- **Icons**: Lucide React
+- **Hosting & Deployments**: Vercel
+
+---
+
+## 💻 Running Locally
+
+```bash
+# Clone the repository
+git clone https://github.com/drj7zz/drj7zz.git
+
+# Navigate to app directory
+cd drj7zz/app
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the portfolio.
+
+---
+
+## 🔒 Environment Variables
+
+To enable live GitHub contributions and streak tracking on Vercel:
+1. In Vercel, navigate to **Settings → Environment Variables**.
+2. Add `GITHUB_TOKEN` with a GitHub Personal Access Token (`public_repo` scope).
+3. The server-side API route `/api/github-activity` securely reads this token without exposing it to the browser.
+
+---
+
+<p align="center"><i>Building in public · Always curious · KAALYUG</i></p>
