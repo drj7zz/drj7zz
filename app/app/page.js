@@ -49,22 +49,35 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* ─── Hero Section (Aligned Copy beside Profile in All Views) ─── */}
+      {/* ─── Hero Section ─── */}
+      {/* Desktop: h1 full-width top → copy LEFT + portrait RIGHT, both aligned to title edge */}
+      {/* Mobile:  h1 → portrait centred → copy centred                                      */}
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-top">
-          <p className="eyebrow">Frontend developer / Nepal</p>
-          <h1 id="hero-title">
-            Interfaces with<br />
-            <span>clarity and intent.</span>
-          </h1>
-        </div>
+        <p className="eyebrow">Frontend developer / Nepal</p>
+        <h1 id="hero-title">
+          Interfaces with<br />
+          <span>clarity and intent.</span>
+        </h1>
 
+        {/* Mobile-only: portrait centred between title and copy */}
+        <figure className="hero-portrait hero-portrait--mobile">
+          <div className="hero-portrait-frame">
+            <img
+              src="/assets/images/profile.jpg"
+              alt="DRJ, frontend developer"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+            />
+          </div>
+        </figure>
+
+        {/* Split row: copy on left, portrait on right (desktop only portrait) */}
         <div className="hero-split">
           <div className="hero-copy-wrap">
             <p className="hero-copy">
               I am DRJ, an emerging frontend developer focused on turning ideas into responsive, accessible web experiences. I combine a visual eye with practical JavaScript and a commitment to learning in public—ready to contribute thoughtful work to a real product team.
             </p>
-
             <div className="cta-row">
               <Link className="button" href="/about">
                 Learn about me <ArrowRight size={14} />
@@ -73,7 +86,6 @@ export default function DashboardPage() {
                 <Send size={13} /> Start a conversation
               </Link>
             </div>
-
             <div className="hero-signals" aria-label="Professional strengths">
               {heroSignals.map(([iconKey, label]) => {
                 const IconComp = ICON_MAP[iconKey] || Users;
@@ -86,7 +98,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <figure className="hero-portrait">
+          {/* Desktop-only portrait */}
+          <figure className="hero-portrait hero-portrait--desktop">
             <div className="hero-portrait-frame">
               <img
                 src="/assets/images/profile.jpg"
