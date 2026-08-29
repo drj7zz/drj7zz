@@ -49,62 +49,55 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* ─── Hero Section ─── */}
+      {/* ─── Hero Section (Aligned Copy beside Profile in All Views) ─── */}
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-content">
+        <div className="hero-top">
           <p className="eyebrow">Frontend developer / Nepal</p>
-          
           <h1 id="hero-title">
             Interfaces with<br />
             <span>clarity and intent.</span>
           </h1>
-
-          {/* Mobile Profile Image: Placed directly between h1#hero-title and p.hero-copy (No Caption) */}
-          <figure className="hero-portrait-mobile">
-            <img
-              src="/assets/images/profile.jpg"
-              alt="DRJ, frontend developer"
-              draggable={false}
-              onContextMenu={(e) => e.preventDefault()}
-              onDragStart={(e) => e.preventDefault()}
-            />
-          </figure>
-
-          <p className="hero-copy">
-            I am DRJ, an emerging frontend developer focused on turning ideas into responsive, accessible web experiences. I combine a visual eye with practical JavaScript and a commitment to learning in public—ready to contribute thoughtful work to a real product team.
-          </p>
-
-          <div className="cta-row">
-            <Link className="button" href="/about">
-              Learn about me <ArrowRight size={14} />
-            </Link>
-            <Link className="button ghost" href="/connect">
-              <Send size={13} /> Start a conversation
-            </Link>
-          </div>
-
-          <div className="hero-signals" aria-label="Professional strengths">
-            {heroSignals.map(([iconKey, label]) => {
-              const IconComp = ICON_MAP[iconKey] || Users;
-              return (
-                <span key={label}>
-                  <IconComp size={13} /> {label}
-                </span>
-              );
-            })}
-          </div>
         </div>
 
-        {/* Desktop Profile Image: Aligned with Hero Content (No Caption) */}
-        <figure className="hero-portrait-desktop">
-          <img
-            src="/assets/images/profile.jpg"
-            alt="DRJ, frontend developer"
-            draggable={false}
-            onContextMenu={(e) => e.preventDefault()}
-            onDragStart={(e) => e.preventDefault()}
-          />
-        </figure>
+        <div className="hero-split">
+          <div className="hero-copy-wrap">
+            <p className="hero-copy">
+              I am DRJ, an emerging frontend developer focused on turning ideas into responsive, accessible web experiences. I combine a visual eye with practical JavaScript and a commitment to learning in public—ready to contribute thoughtful work to a real product team.
+            </p>
+
+            <div className="cta-row">
+              <Link className="button" href="/about">
+                Learn about me <ArrowRight size={14} />
+              </Link>
+              <Link className="button ghost" href="/connect">
+                <Send size={13} /> Start a conversation
+              </Link>
+            </div>
+
+            <div className="hero-signals" aria-label="Professional strengths">
+              {heroSignals.map(([iconKey, label]) => {
+                const IconComp = ICON_MAP[iconKey] || Users;
+                return (
+                  <span key={label}>
+                    <IconComp size={13} /> {label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          <figure className="hero-portrait">
+            <div className="hero-portrait-frame">
+              <img
+                src="/assets/images/profile.jpg"
+                alt="DRJ, frontend developer"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+              />
+            </div>
+          </figure>
+        </div>
       </section>
 
       {/* ─── Top Engineering Notes (Blogs FIRST) ─── */}
