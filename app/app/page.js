@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { heroSignals, blogPosts, projects } from '../lib/data';
+import { heroSignals } from '../lib/data';
 import {
   ArrowRight, Send, Smartphone, Accessibility, Users,
   GitBranch, ExternalLink, RefreshCw, Clock, ChevronDown, ChevronUp
@@ -18,24 +18,35 @@ const DAY_NAMES = ['Mon', 'Wed', 'Fri'];
 
 export default function DashboardPage() {
   const [activity, setActivity] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingActivity, setLoadingActivity] = useState(true);
+  const [topBlogs, setTopBlogs] = useState([]);
   const [expandedBlogId, setExpandedBlogId] = useState(null);
 
   useEffect(() => {
-    async function loadActivity() {
+    async function loadData() {
       try {
-        setLoading(true);
-        const res = await fetch('/api/github-activity');
-        if (!res.ok) throw new Error('Activity data unavailable');
-        const data = await res.json();
-        setActivity(data);
+        setLoadingActivity(true);
+        const [resAct, resBlogs] = await Promise.all([
+          fetch('/api/github-activity'),
+          fetch('/api/blogs')
+        ]);
+
+        if (resAct.ok) {
+          const actData = await resAct.json();
+          setActivity(actData);
+        }
+
+        if (resBlogs.ok) {
+          const blogData = await resBlogs.json();
+          setTopBlogs((blogData.data || []).slice(0, 2));
+        }
       } catch (_err) {
-        // Handled silently
+        // Handled gracefully
       } finally {
-        setLoading(false);
+        setLoadingActivity(false);
       }
     }
-    loadActivity();
+    loadData();
   }, []);
 
   const toggleBlog = (id) => {
@@ -45,13 +56,10 @@ export default function DashboardPage() {
   const calendar = activity?.contributionCalendar;
   const streak = activity?.contributionStreak || { current: 0, longest: 0, total: 0 };
   const weeks = calendar?.weeks || [];
-  const topBlogs = blogPosts.slice(0, 2);
 
   return (
     <>
       {/* ─── Hero Section ─── */}
-      {/* Desktop: h1 full-width top → copy LEFT + portrait RIGHT, both aligned to title edge */}
-      {/* Mobile:  h1 → portrait centred → copy centred                                      */}
       <section className="hero" aria-labelledby="hero-title">
         <p className="eyebrow">Frontend developer / Nepal</p>
         <h1 id="hero-title">
@@ -72,7 +80,7 @@ export default function DashboardPage() {
           </div>
         </figure>
 
-        {/* Split row: copy on left, portrait on right (desktop only portrait) */}
+        {/* Split row: copy on left, portrait on right */}
         <div className="hero-split">
           <div className="hero-copy-wrap">
             <p className="hero-copy">
@@ -113,7 +121,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ─── Top Engineering Notes (Blogs FIRST) ─── */}
+      {/* ─── Top Engineering Notes (Live from Backend) ─── */}
       <section className="blog-section" aria-labelledby="dashboard-blog-title">
         <div className="dashboard-heading">
           <div>
@@ -121,9 +129,15 @@ export default function DashboardPage() {
             <h2 id="dashboard-blog-title">Featured Writing</h2>
           </div>
           <Link className="view-all-link" href="/blog">
-            All Notes ({blogPosts.length}) <ArrowRight size={14} />
+            All Notes <ArrowRight size={14} />
           </Link>
         </div>
+
+        {topBlogs.length === 0 && (
+          <p style={{ color: 'var(--muted)', fontSize: '13px' }}>
+            No featured notes published yet.
+          </p>
+        )}
 
         <div className="blog-list">
           {topBlogs.map((post) => {
@@ -148,9 +162,11 @@ export default function DashboardPage() {
                   <p className="blog-excerpt">{post.excerpt}</p>
                   <div className="blog-card-footer">
                     <div className="blog-tags">
-                      {post.tags.map((tag) => (
+                      {Array.isArray(post.tags) ? post.tags.map((tag) => (
                         <span className="blog-tag" key={tag}>{tag}</span>
-                      ))}
+                      )) : (
+                        <span className="blog-tag">{post.tags}</span>
+                      )}
                     </div>
                     <span className="blog-toggle">
                       {isExpanded ? (
@@ -164,7 +180,7 @@ export default function DashboardPage() {
 
                 {isExpanded && (
                   <div className="blog-content">
-                    {post.content.split('\n\n').map((paragraph, idx) => {
+                    {post.content && post.content.split('\n\n').map((paragraph, idx) => {
                       if (paragraph.startsWith('```')) {
                         const codeText = paragraph.replace(/```(javascript|css)?/g, '').trim();
                         return (
@@ -191,7 +207,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ─── Live GitHub Activity & Streak (THEN GitHub Section) ─── */}
+      {/* ─── Live GitHub Activity & Streak ─── */}
       <section className="github-panel" aria-labelledby="dashboard-github-title">
         <div className="github-heading">
           <div>
@@ -270,7 +286,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {loading && (
+        {loadingActivity && (
           <p style={{ color: 'var(--muted)', marginTop: '20px', font: '11px "DM Mono", monospace' }}>
             <RefreshCw size={12} style={{ display: 'inline', marginRight: '6px' }} />
             Loading GitHub contributions...

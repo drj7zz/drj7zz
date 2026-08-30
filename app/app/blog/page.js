@@ -1,11 +1,29 @@
 'use client';
-import React, { useState } from 'react';
-import { blogPosts } from '../../lib/data';
-import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Clock, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 export default function BlogPage() {
-  // Default closed (expandedId: null)
+  const [blogs, setBlogs] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadBlogs() {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/blogs');
+        if (res.ok) {
+          const json = await res.json();
+          setBlogs(json.data || []);
+        }
+      } catch (_err) {
+        setBlogs([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadBlogs();
+  }, []);
 
   const togglePost = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -21,8 +39,21 @@ export default function BlogPage() {
         </p>
       </div>
 
+      {loading && (
+        <p style={{ color: 'var(--muted)', font: '11px "DM Mono", monospace', margin: '20px 0' }}>
+          <RefreshCw size={12} style={{ display: 'inline', marginRight: '6px' }} />
+          Loading engineering notes...
+        </p>
+      )}
+
+      {!loading && blogs.length === 0 && (
+        <div style={{ padding: '36px 0', borderTop: '1px solid var(--line)', color: 'var(--muted)', fontSize: '13px' }}>
+          No notes published yet. Add your first note in the <a href="/admin" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>Admin Dashboard</a>.
+        </div>
+      )}
+
       <div className="blog-list">
-        {blogPosts.map((post) => {
+        {blogs.map((post) => {
           const isExpanded = expandedId === post.id;
           return (
             <article className="blog-card" key={post.id}>
@@ -44,9 +75,11 @@ export default function BlogPage() {
                 <p className="blog-excerpt">{post.excerpt}</p>
                 <div className="blog-card-footer">
                   <div className="blog-tags">
-                    {post.tags.map((tag) => (
+                    {Array.isArray(post.tags) ? post.tags.map((tag) => (
                       <span className="blog-tag" key={tag}>{tag}</span>
-                    ))}
+                    )) : (
+                      <span className="blog-tag">{post.tags}</span>
+                    )}
                   </div>
                   <span className="blog-toggle">
                     {isExpanded ? (
@@ -60,7 +93,7 @@ export default function BlogPage() {
 
               {isExpanded && (
                 <div className="blog-content">
-                  {post.content.split('\n\n').map((paragraph, idx) => {
+                  {post.content && post.content.split('\n\n').map((paragraph, idx) => {
                     if (paragraph.startsWith('```')) {
                       const codeText = paragraph.replace(/```(javascript|css)?/g, '').trim();
                       return (

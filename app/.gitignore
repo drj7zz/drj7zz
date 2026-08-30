@@ -1,24 +1,41 @@
-# Build output
-.next/
-out/
-build/
-dist/
+# Next.js build output
+app/.next/
+app/out/
+app/build/
+app/dist/
 
 # Dependencies
+app/node_modules/
 node_modules/
 /.pnp
 .pnp.js
 
-# Env secrets
+# Environment secrets — never commit
 .env
 .env.local
 .env.*.local
+app/.env
+app/.env.local
+app/.env.*.local
 
-# OS
+# Seed data (ignored from git)
+seed_data/
+app/seed_data/
+*.seed.json
+
+# IDE & OS
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Misc
+.ui-browser/
+ui-check.png

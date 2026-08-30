@@ -1,7 +1,7 @@
 /* ==========================================================================
-   DRJ Portfolio — Global Stylesheet
+   DRJ Portfolio â€” Global Stylesheet
    Desktop: h1 full-width, copy beside framed portrait
-   Mobile: h1 → portrait centred → copy centred
+   Mobile: h1 â†’ portrait centred â†’ copy centred
    ========================================================================== */
 
 :root {
@@ -58,7 +58,7 @@ button { font: inherit; background: none; border: none; cursor: pointer; }
 
 main { flex: 1; }
 
-/* ═══════════ Navigation ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Navigation â•â•â•â•â•â•â•â•â•â•â• */
 .nav {
   position: sticky;
   top: 0;
@@ -128,7 +128,7 @@ main { flex: 1; }
 .nav-item:hover, .nav-item.active { color: var(--accent); }
 .nav-theme-wrap { display: flex; align-items: center; flex-shrink: 0; }
 
-/* ═══════════ Theme Toggle ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Theme Toggle â•â•â•â•â•â•â•â•â•â•â• */
 .theme-toggle {
   display: grid;
   place-items: center;
@@ -160,7 +160,7 @@ main { flex: 1; }
 .theme-toggle.dark { color: var(--accent); }
 .theme-toggle-skeleton { width: 32px; height: 32px; }
 
-/* ═══════════ Theme Switch Animation ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Theme Switch Animation â•â•â•â•â•â•â•â•â•â•â• */
 body.theme-switching { animation: themeBlur 0.55s ease; }
 
 body.theme-switching * {
@@ -178,7 +178,7 @@ body.theme-switching * {
   100% { filter: blur(0);   opacity: 1; }
 }
 
-/* ═══════════ Page Entrance ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Page Entrance â•â•â•â•â•â•â•â•â•â•â• */
 .page-transition-wrapper { animation: pageIn 0.35s cubic-bezier(0.2, 0.7, 0.3, 1); }
 
 @keyframes pageIn {
@@ -186,7 +186,7 @@ body.theme-switching * {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ═══════════ Shared Labels ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Shared Labels â•â•â•â•â•â•â•â•â•â•â• */
 .eyebrow,
 .section-label {
   margin: 0 0 16px;
@@ -196,9 +196,9 @@ body.theme-switching * {
   text-transform: uppercase;
 }
 
-/* ═══════════ Hero Layout ═══════════ */
-/* Desktop: h1 full-width → hero-split (copy left | portrait right) */
-/* Mobile:  h1 → portrait centred → copy centred stacked            */
+/* â•â•â•â•â•â•â•â•â•â•â• Hero Layout â•â•â•â•â•â•â•â•â•â•â• */
+/* Desktop: h1 full-width â†’ hero-split (copy left | portrait right) */
+/* Mobile:  h1 â†’ portrait centred â†’ copy centred stacked            */
 .hero {
   display: flex;
   flex-direction: column;
@@ -233,7 +233,7 @@ body.theme-switching * {
 
 [data-theme="dark"] .hero-copy { color: #9db1cc; }
 
-/* ═══════════ Portrait Frame ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Portrait Frame â•â•â•â•â•â•â•â•â•â•â• */
 .hero-portrait { margin: 0; }
 
 .hero-portrait-frame {
@@ -265,7 +265,7 @@ body.theme-switching * {
 .hero-portrait--mobile { display: none; margin: 0 auto 28px; max-width: 200px; }
 .hero-portrait--desktop { display: block; }
 
-/* ═══════════ Buttons ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Buttons â•â•â•â•â•â•â•â•â•â•â• */
 .cta-row, .connect-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
 .button, .email-action, .copy-email {
@@ -313,7 +313,7 @@ body.theme-switching * {
 
 .hero-signals svg, .social svg { color: var(--accent); }
 
-/* ═══════════ Dashboard Headings ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Dashboard Headings â•â•â•â•â•â•â•â•â•â•â• */
 .dashboard-heading { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
 
 .dashboard-heading h2 {
@@ -335,7 +335,7 @@ body.theme-switching * {
 
 .view-all-link:hover { text-decoration: underline; }
 
-/* ═══════════ Content Grids ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Content Grids â•â•â•â•â•â•â•â•â•â•â• */
 .content-grid, .career-panel, .projects-section {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 0.9fr);
@@ -408,7 +408,7 @@ body.theme-switching * {
 .project-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; color: var(--ink); }
 .project-links a:hover { color: var(--accent); }
 
-/* ═══════════ GitHub Panel ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• GitHub Panel â•â•â•â•â•â•â•â•â•â•â• */
 .github-panel { padding: 78px 0; border-bottom: 1px solid var(--line); }
 
 .github-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 36px; flex-wrap: wrap; }
@@ -426,7 +426,7 @@ body.theme-switching * {
 .repo-description { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .repo-meta { color: var(--accent); font: 10px 'DM Mono', monospace; }
 
-/* ═══════════ Contribution Graph ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Contribution Graph â•â•â•â•â•â•â•â•â•â•â• */
 .graph-container { position: relative; margin-top: 20px; }
 
 .graph-months { display: grid; grid-auto-flow: column; grid-auto-columns: 14px; gap: 3px; margin-bottom: 6px; margin-left: 36px; color: var(--muted); font: 10px 'DM Mono', monospace; }
@@ -458,7 +458,7 @@ body.theme-switching * {
 .graph-legend { display: flex; align-items: center; gap: 4px; margin-top: 12px; justify-content: flex-end; color: var(--muted); font: 10px 'DM Mono', monospace; }
 .graph-legend .graph-cell { width: 12px; height: 12px; cursor: default; }
 
-/* ═══════════ Blog ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Blog â•â•â•â•â•â•â•â•â•â•â• */
 .blog-section { padding: 78px 0; border-bottom: 1px solid var(--line); }
 .blog-intro { max-width: 620px; margin-bottom: 42px; }
 .blog-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
@@ -501,7 +501,7 @@ body.theme-switching * {
 [data-theme="dark"] .blog-content pre { background: #0f1a2e; color: #dbe7f5; }
 .blog-content pre code { padding: 0; background: none; border: none; color: inherit; }
 
-/* ═══════════ Connect ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Connect â•â•â•â•â•â•â•â•â•â•â• */
 .connect { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 40px 0; border-bottom: 1px solid var(--line); }
 .connect-orbit { display: grid; width: 45px; height: 45px; place-items: center; color: #fff; background: var(--accent); }
 .connect h2 { margin: 0 0 4px; font: 700 23px Sora, sans-serif; color: var(--ink); }
@@ -510,17 +510,16 @@ body.theme-switching * {
 .social { display: flex; align-items: center; gap: 8px; padding: 7px 0; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 11px; font-weight: 800; transition: color 0.15s ease; }
 .social:hover { color: var(--accent); }
 
-/* ═══════════ Footer ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Footer â•â•â•â•â•â•â•â•â•â•â• */
 .footer { padding: 30px 0; color: var(--muted); font: 10px 'DM Mono', monospace; text-align: center; }
 
-/* ═══════════ Mobile ≤800px: stacked layout ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Mobile â‰¤800px: stacked layout â•â•â•â•â•â•â•â•â•â•â• */
 @media (max-width: 800px) {
   .page-shell { width: min(100% - 24px, 640px); }
-
-  .nav { padding: 0; min-height: 60px; margin: 0; }
-  .nav-controls { max-width: calc(100% - 100px); }
-  .nav-links { gap: 12px; }
-  .nav-item { font-size: 10.5px; }
+  .nav { padding: 0 16px; min-height: 60px; margin: 0; }
+  .nav-controls { max-width: none; overflow: visible; }
+  .nav-links { display: none; }
+  .nav-burger { display: grid; }
 
   .hero {
     padding: 48px 0 40px;
@@ -548,7 +547,7 @@ body.theme-switching * {
   .graph-days-label { display: none; }
 }
 
-/* ═══════════ Mobile ≤520px ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• Mobile â‰¤520px â•â•â•â•â•â•â•â•â•â•â• */
 @media (max-width: 520px) {
   .hero h1#hero-title { font-size: clamp(34px, 9vw, 46px); }
   .hero-portrait--mobile { max-width: 155px; }
@@ -561,3 +560,48 @@ body.theme-switching * {
   .blog-card-header { padding: 20px 0; }
   .blog-card-header h3 { font-size: 18px; }
 }
+
+/* Mobile hamburger button â€” hidden on desktop */
+.nav-burger {
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  flex-shrink: 0;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.nav-burger:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Mobile slide-down menu */
+.mobile-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 0;
+  overflow: hidden;
+  border-bottom: 1px solid transparent;
+  background: rgba(247, 245, 240, 0.98);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: max-height 0.3s ease, border-color 0.3s ease;
+}
+[data-theme="dark"] .mobile-menu { background: rgba(11, 18, 32, 0.98); }
+.mobile-menu.open { max-height: 70vh; overflow-y: auto; border-bottom-color: var(--line); }
+.mobile-menu nav { display: flex; flex-direction: column; padding: 8px 16px 16px; }
+.mobile-nav-item {
+  padding: 13px 6px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.mobile-nav-item:last-child { border-bottom: none; }
+.mobile-nav-item.active, .mobile-nav-item:hover { color: var(--accent); }
+

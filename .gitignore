@@ -18,6 +18,11 @@ app/.env
 app/.env.local
 app/.env.*.local
 
+# Seed data (ignored from git)
+seed_data/
+app/seed_data/
+*.seed.json
+
 # IDE & OS
 .vscode/
 .idea/

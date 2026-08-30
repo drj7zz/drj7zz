@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie": "^2.0.1",
+    "framer-motion": "^11.5.4",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.439.0",
+    "mongodb": "^7.6.0",
     "next": "^14.2.15",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "lucide-react": "^0.439.0",
-    "framer-motion": "^11.5.4"
+    "react-dom": "^18.3.1"
   },
   "description": "DRJ — Personal portfolio built with Next.js 14 App Router, dark blue theme, and live GitHub integration.",
   "author": "DRJ <giridirghraj@gmail.com>",
