@@ -1,4 +1,10 @@
-﻿import { MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb';
+import dns from 'dns';
+
+// Configure DNS servers to ensure reliable SRV record resolution across all environments
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (_e) {}
 
 const uri = process.env.MONGODB_URI;
 const options = {
@@ -7,13 +13,13 @@ const options = {
 };
 
 // Derive the database name from the URI path so the URI is the single
-// source of truth. Falls back to 'kaalyug_portfolio' if absent.
+// source of truth. Falls back to 'portfolio' if absent.
 function dbNameFromUri(u) {
   try {
     const afterSlash = u.split('@')[1]?.split('?')[0]?.split('/')[1];
-    return afterSlash || 'kaalyug_portfolio';
+    return afterSlash || 'portfolio';
   } catch (_err) {
-    return 'kaalyug_portfolio';
+    return 'portfolio';
   }
 }
 
@@ -45,14 +51,30 @@ if (uri && !uri.includes('<username>') && !uri.includes('<password>')) {
  * (e.g. /portfolio in the URI), so one env var controls everything.
  */
 export async function getDatabase() {
-  if (!clientPromise) {
+  if (!uri || uri.includes('<username>') || uri.includes('<password>')) {
     return null;
   }
   try {
+    if (!clientPromise) {
+      if (process.env.NODE_ENV === 'development') {
+        if (!global._mongoClientPromise) {
+          client = new MongoClient(uri, options);
+          global._mongoClientPromise = client.connect();
+        }
+        clientPromise = global._mongoClientPromise;
+      } else {
+        client = new MongoClient(uri, options);
+        clientPromise = client.connect();
+      }
+    }
     const connectedClient = await clientPromise;
     return connectedClient.db(dbNameFromUri(uri));
   } catch (err) {
     console.warn('MongoDB connection unavailable (falling back to seed data):', err.message);
+    clientPromise = null;
+    if (global._mongoClientPromise) {
+      global._mongoClientPromise = null;
+    }
     return null;
   }
 }

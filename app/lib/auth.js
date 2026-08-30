@@ -19,7 +19,7 @@ export function authConfigured() {
 export function verifyCredentials(username, password) {
   if (!isAuthConfigured()) return false;
   if (typeof username !== 'string' || typeof password !== 'string') return false;
-  return username === ADMIN_USER && password === ADMIN_PASS;
+  return username.trim() === ADMIN_USER.trim() && password.trim() === ADMIN_PASS.trim();
 }
 
 export function createToken(payload = {}) {
