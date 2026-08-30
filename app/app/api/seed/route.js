@@ -2,9 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getDatabase } from '../../../lib/mongodb';
 import { getAdminSession } from '../../../lib/auth';
-import blogSeed from '../../../seed_data/blogs.json';
-import projectSeed from '../../../seed_data/projects.json';
-import siteInfoSeed from '../../../seed_data/site_info.json';
+import { blogPosts as blogSeed, projects as projectSeed, socialLinks, facts, heroSignals } from '../../../lib/data';
 
 export async function POST() {
   try {
@@ -44,7 +42,7 @@ export async function POST() {
     }
 
     // 3. Sync Site Info
-    const infoPayload = Array.isArray(siteInfoSeed) ? siteInfoSeed[0]?.data : (siteInfoSeed.data || siteInfoSeed);
+    const infoPayload = { socialLinks, facts, heroSignals };
     await db.collection('site_info').updateOne(
       { key: 'main' },
       {
