@@ -1,0 +1,10 @@
+{
+  "name": "kaalyug-portfolio-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run --prefix app dev",
+    "build": "npm run --prefix app build",
+    "start": "npm run --prefix app start"
+  }
+}
