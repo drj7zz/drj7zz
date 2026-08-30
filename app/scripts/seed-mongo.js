@@ -25,7 +25,9 @@ async function seed() {
     await client.connect();
     console.log('\x1b[32m✓ Connected to MongoDB Atlas!\x1b[0m');
 
-    const db = client.db('kaalyug_portfolio');
+    const dbName = (uri.split('@')[1]?.split('?')[0]?.split('/')[1]) || 'kaalyug_portfolio';
+    const db = client.db(dbName);
+    console.log('Using database: ' + dbName);
 
     // 1. Seed Blogs
     const blogs = JSON.parse(fs.readFileSync(path.join(__dirname, '../seed_data/blogs.json'), 'utf8'));
