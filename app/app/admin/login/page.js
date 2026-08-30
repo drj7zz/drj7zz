@@ -1,15 +1,27 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, User, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Lock, User, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
+
+const REMEMBERED_USERNAME_KEY = 'kaalyug_admin_username';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberUsername, setRememberUsername] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const savedUsername = window.localStorage.getItem(REMEMBERED_USERNAME_KEY);
+    if (savedUsername) {
+      setUsername(savedUsername);
+      setRememberUsername(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,6 +38,12 @@ export default function AdminLoginPage() {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Invalid credentials');
+      }
+
+      if (rememberUsername) {
+        window.localStorage.setItem(REMEMBERED_USERNAME_KEY, username.trim());
+      } else {
+        window.localStorage.removeItem(REMEMBERED_USERNAME_KEY);
       }
 
       router.push('/admin');
@@ -100,7 +118,7 @@ export default function AdminLoginPage() {
           </label>
           <div style={{ position: 'relative' }}>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -108,7 +126,7 @@ export default function AdminLoginPage() {
               style={{
                 width: '100%',
                 height: '44px',
-                padding: '0 14px 0 36px',
+                padding: '0 42px 0 36px',
                 background: 'transparent',
                 border: '1px solid var(--line)',
                 borderRadius: '6px',
@@ -119,8 +137,28 @@ export default function AdminLoginPage() {
               }}
             />
             <Lock size={15} style={{ position: 'absolute', left: '12px', top: '14px', color: 'var(--muted)' }} />
+            <button
+              type="button"
+              onClick={() => setShowPassword((isVisible) => !isVisible)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              title={showPassword ? 'Hide password' : 'Show password'}
+              style={{
+                position: 'absolute', right: '8px', top: '8px', display: 'grid', width: '28px', height: '28px', placeItems: 'center', color: 'var(--muted)'
+              }}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
         </div>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--muted)', fontSize: '12px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={rememberUsername}
+            onChange={(e) => setRememberUsername(e.target.checked)}
+          />
+          Remember username on this device
+        </label>
 
         <button
           type="submit"

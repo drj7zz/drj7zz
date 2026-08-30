@@ -20,7 +20,7 @@ export default function AboutPage() {
           {facts.map(([label, lines]) => (
             <div className="fact" key={label}>
               <span>{label}</span>
-              <strong>{lines[0]}<br />{lines[1]}</strong>
+              <strong>{lines.join(' ')}</strong>
             </div>
           ))}
         </div>

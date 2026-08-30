@@ -42,16 +42,30 @@ export function ThemeProvider({ children }) {
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    
-    // Add smooth blur & fade transition class to document body
-    document.body.classList.add('theme-switching');
-    setTheme(nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    localStorage.setItem('drj-theme', nextTheme);
+    const root = document.documentElement;
+    const directionClass = nextTheme === 'dark' ? 'theme-to-dark' : 'theme-to-light';
+    const applyTheme = () => {
+      setTheme(nextTheme);
+      root.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('drj-theme', nextTheme);
+    };
 
-    setTimeout(() => {
-      document.body.classList.remove('theme-switching');
-    }, 550);
+    const clearTransitionClasses = () => {
+      root.classList.remove('theme-transitioning', 'theme-to-dark', 'theme-to-light');
+    };
+
+    root.classList.add('theme-transitioning', directionClass);
+    const viewTransition = document.startViewTransition?.(applyTheme);
+
+    if (viewTransition) {
+      viewTransition.finished.finally(clearTransitionClasses);
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      applyTheme();
+      window.setTimeout(clearTransitionClasses, 650);
+    });
   };
 
   return (

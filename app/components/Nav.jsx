@@ -12,7 +12,8 @@ const NAV_ITEMS = [
   { href: '/projects', label: 'Projects' },
   { href: '/blog', label: 'Blog' },
   { href: '/github', label: 'GitHub' },
-  { href: '/connect', label: 'Connect' }
+  { href: '/connect', label: 'Connect' },
+  { href: '/admin/login', label: 'Admin' }
 ];
 
 export default function Nav() {

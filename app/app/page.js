@@ -61,27 +61,24 @@ export default function DashboardPage() {
     <>
       {/* ─── Hero Section ─── */}
       <section className="hero" aria-labelledby="hero-title">
-        <p className="eyebrow">Frontend developer / Nepal</p>
+        <p className="eyebrow">DRJ7ZZ / Dirghraj Giri / Frontend developer / Nepal</p>
         <h1 id="hero-title">
-          Interfaces with<br />
-          <span>clarity and intent.</span>
+          Interfaces with <span>clarity and intent.</span>
         </h1>
 
-        {/* Mobile-only: portrait centred between title and copy */}
-        <figure className="hero-portrait hero-portrait--mobile">
-          <div className="hero-portrait-frame">
-            <img
-              src="/assets/images/profile.jpg"
-              alt="DRJ, frontend developer"
-              draggable={false}
-              onContextMenu={(e) => e.preventDefault()}
-              onDragStart={(e) => e.preventDefault()}
-            />
-          </div>
-        </figure>
-
-        {/* Split row: copy on left, portrait on right */}
         <div className="hero-split">
+          <figure className="hero-portrait hero-portrait--inline">
+            <div className="hero-portrait-frame">
+              <img
+                src="/assets/images/profile.jpg"
+                alt="DRJ, frontend developer"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+              />
+            </div>
+          </figure>
+
           <div className="hero-copy-wrap">
             <p className="hero-copy">
               I am DRJ, an emerging frontend developer focused on turning ideas into responsive, accessible web experiences. I combine a visual eye with practical JavaScript and a commitment to learning in public—ready to contribute thoughtful work to a real product team.
@@ -106,18 +103,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Desktop-only portrait */}
-          <figure className="hero-portrait hero-portrait--desktop">
-            <div className="hero-portrait-frame">
-              <img
-                src="/assets/images/profile.jpg"
-                alt="DRJ, frontend developer"
-                draggable={false}
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-              />
-            </div>
-          </figure>
         </div>
       </section>
 
