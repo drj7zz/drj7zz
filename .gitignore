@@ -39,3 +39,10 @@ yarn-error.log*
 # Misc
 .ui-browser/
 ui-check.png
+
+# Environment secrets — blanket protection (any depth)
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
