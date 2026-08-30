@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_USER = process.env.ADMIN_USERNAME;
-const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET || 'x2P6Z7qKuF/epxpCCRoaPm8i9RZqj16qIqy4GpX+5Ks=';
+const ADMIN_USER = process.env.ADMIN_USERNAME || 'giridirghraj';
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'FimmgDrziItcKQtW0H4ai1l';
 const COOKIE_NAME = 'drj_admin_token';
 const TOKEN_TTL = '7d';
 
