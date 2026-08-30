@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. admin"
+              placeholder="e.g. giridirghraj"
               required
               style={{
                 width: '100%',
