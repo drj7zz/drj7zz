@@ -52,16 +52,37 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'DRJ7ZZ Portfolio',
+    url: 'https://giridirghraj.vercel.app',
+    description: 'Official portfolio of Dirghraj Giri (DRJ7ZZ), frontend developer from Nepal.',
+    author: {
+      '@type': 'Person',
+      name: 'Dirghraj Giri',
+      url: 'https://giridirghraj.vercel.app'
+    }
+  };
+
   const personSchema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name: 'Dirghraj Giri',
-    alternateName: ['DRJ7ZZ', 'DRJ', 'Dirghraj'],
+    alternateName: ['DRJ7ZZ', 'DRJ', 'Dirghraj', 'Giridirghraj'],
     url: 'https://giridirghraj.vercel.app',
     image: 'https://giridirghraj.vercel.app/assets/images/profile.jpg',
     jobTitle: 'Frontend Developer',
-    address: { '@type': 'PostalAddress', addressCountry: 'NP' },
-    sameAs: ['https://github.com/drj7zz', 'https://www.instagram.com/drj7zz']
+    description: 'Frontend developer and software engineer from Nepal crafting high-performance, accessible web interfaces.',
+    address: { '@type': 'PostalAddress', addressCountry: 'NP', addressLocality: 'Parsa, Madhesh' },
+    sameAs: [
+      'https://github.com/drj7zz',
+      'https://www.linkedin.com/in/dirghraj-giri',
+      'https://www.instagram.com/drj1zz',
+      'https://x.com/drj7zz',
+      'https://www.reddit.com/user/Ok-Fox-4670'
+    ],
+    knowsAbout: ['Frontend Engineering', 'JavaScript', 'TypeScript', 'Next.js', 'React', 'CSS Architecture', 'Web Accessibility (WCAG)', 'Git', 'Open Source']
   };
 
   return (
@@ -75,6 +96,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
         <ThemeProvider>
           <div className="page-shell">

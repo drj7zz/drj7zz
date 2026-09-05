@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { heroSignals, socialLinks as seedSocialLinks } from '../lib/data';
+import { heroSignals, socialLinks as seedSocialLinks, blogPosts as seedBlogs } from '../lib/data';
 import Icon from '../components/Icon';
 import {
   ArrowRight, Send, Smartphone, Accessibility, Users,
@@ -23,8 +23,8 @@ const DAY_NAMES = ['Mon', 'Wed', 'Fri'];
 
 export default function DashboardPage() {
   const [activity, setActivity] = useState(null);
-  const [loadingActivity, setLoadingActivity] = useState(true);
-  const [topBlogs, setTopBlogs] = useState([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [topBlogs, setTopBlogs] = useState(seedBlogs.slice(0, 2));
   const [expandedBlogId, setExpandedBlogId] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
   const [profileImgLoaded, setProfileImgLoaded] = useState(false);
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                 {!profileImgError ? (
                   <img
                     ref={imgRef}
-                    src="/assets/images/profile.png"
+                    src="/assets/images/profile.jpg"
                     alt="Dirghraj Giri (DRJ) - Frontend Engineer"
                     width={260}
                     height={260}
@@ -170,7 +170,10 @@ export default function DashboardPage() {
 
           <div className="hero-copy-wrap">
             <p className="hero-copy">
-              I am DRJ, a frontend engineer specialized in building responsive, accessible, and high-performance web applications. I combine visual precision with modern JavaScript and standards-compliant engineering to deliver robust digital experiences.
+              Welcome to the official developer portfolio of <strong>Dirghraj Giri</strong> (widely known as <strong>DRJ7ZZ</strong> or <strong>DRJ</strong>), a professional <strong>frontend developer</strong> and software engineer from Nepal. I specialize in designing and engineering accessible, standards-compliant web applications built with <strong>JavaScript</strong>, <strong>TypeScript</strong>, <strong>Next.js</strong>, and modern <strong>React</strong> architectures.
+            </p>
+            <p className="hero-copy">
+              Every digital interface I craft embodies <em>interfaces with clarity and intent</em> — ensuring visual precision, fast load speeds, resilient keyboard navigation, and seamless responsiveness across desktop computers, tablets, and mobile devices. Whether delivering modular UI systems or architecting high-velocity open-source tools with KAALYUG, my work is engineered for production-ready scale, maintainability, and search visibility.
             </p>
             <div className="cta-row">
               <Link className="button" href="/about">
@@ -472,6 +475,64 @@ export default function DashboardPage() {
             <div className="graph-skeleton-grid" aria-hidden="true" />
           </div>
         )}
+      </section>
+
+      {/* ─── Architectural Overview & Core Engineering Highlights ─── */}
+      <section className="section-panel" style={{ marginTop: '48px', padding: '32px 28px', border: '1px solid var(--line)', borderRadius: '14px', background: 'var(--bg)' }}>
+        <p className="section-label">03 / Engineering Blueprint</p>
+        <h2 style={{ margin: '0 0 12px', font: '700 clamp(22px, 3vw, 28px) / 1.2 Sora, sans-serif', color: 'var(--ink)' }}>
+          Modern Frontend Architecture &amp; Production Philosophy
+        </h2>
+        <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '14.5px', lineHeight: 1.8 }}>
+          As a dedicated frontend developer, Dirghraj Giri (DRJ7ZZ) crafts resilient browser solutions that prioritize real-world utility over superficial complexity. Every web product integrates automated continuous integration, strict TypeScript typing, WCAG 2.1 AA accessibility standards, and search engine discoverability to guarantee sustainable performance and rapid indexing across Google and search crawlers worldwide.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginTop: '24px' }}>
+          <div style={{ padding: '18px', border: '1px solid var(--line)', borderRadius: '10px', background: 'rgba(128, 128, 128, 0.03)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '15px', font: '700 15px "Space Grotesk", sans-serif', color: 'var(--accent)' }}>
+              Accessible &amp; Semantic HTML5
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.7, color: 'var(--muted)' }}>
+              Structuring clean DOM hierarchies with native landmarks, keyboard focus management, and descriptive ARIA semantics to ensure equal access for all human and automated users.
+            </p>
+          </div>
+
+          <div style={{ padding: '18px', border: '1px solid var(--line)', borderRadius: '10px', background: 'rgba(128, 128, 128, 0.03)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '15px', font: '700 15px "Space Grotesk", sans-serif', color: 'var(--accent)' }}>
+              High-Velocity Performance
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.7, color: 'var(--muted)' }}>
+              Optimizing Core Web Vitals (LCP, FID, CLS), server-side rendering with Next.js App Router, minimal client bundle sizes, and hardware-accelerated animations for buttery 120fps mobile rendering.
+            </p>
+          </div>
+
+          <div style={{ padding: '18px', border: '1px solid var(--line)', borderRadius: '10px', background: 'rgba(128, 128, 128, 0.03)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '15px', font: '700 15px "Space Grotesk", sans-serif', color: 'var(--accent)' }}>
+              Open-Source Collaborative Vision
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.7, color: 'var(--muted)' }}>
+              Active maintainer of the KAALYUG project ecosystem. Contributing transparent commit histories, peer code reviews, and reusable developer utilities on GitHub to foster open knowledge sharing.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--line)' }}>
+          <Link href="/projects" className="button" style={{ height: '38px', fontSize: '11px' }}>
+            Explore Featured Projects <ArrowRight size={13} />
+          </Link>
+          <Link href="/about" className="text-link" style={{ margin: 0, fontSize: '12px' }}>
+            Read Professional Background &amp; Story →
+          </Link>
+          <a
+            href="https://github.com/drj7zz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-link"
+            style={{ margin: 0, fontSize: '12px' }}
+          >
+            Inspect GitHub Repositories (@drj7zz) <ExternalLink size={12} style={{ display: 'inline', verticalAlign: '-1px' }} />
+          </a>
+        </div>
       </section>
     </>
   );

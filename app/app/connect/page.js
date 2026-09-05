@@ -11,6 +11,7 @@ export default function ConnectPage() {
   // Chat state
   const [chatUser, setChatUser] = useState(null);
   const [chatChecking, setChatChecking] = useState(true);
+  const [dmOpen, setDmOpen] = useState(true);
   const [authMode, setAuthMode] = useState('login');
   const [authForm, setAuthForm] = useState({ username: '', password: '', remember: true });
   const [showPassword, setShowPassword] = useState(false);
@@ -61,9 +62,8 @@ export default function ConnectPage() {
     }
   }, []);
 
-  // Chat: check session, then poll messages
+  // Chat: check session
   useEffect(() => {
-    let poll;
     async function check() {
       try {
         const res = await fetch('/api/chat/auth');
@@ -76,7 +76,13 @@ export default function ConnectPage() {
       }
     }
     check();
-    poll = setInterval(async () => {
+  }, []);
+
+  // Real-time polling when user is signed in and DM is open
+  useEffect(() => {
+    if (!chatUser || !dmOpen) return;
+
+    const fetchMessages = async () => {
       try {
         const res = await fetch('/api/chat/messages');
         if (res.ok) {
@@ -84,20 +90,20 @@ export default function ConnectPage() {
           setMessages(data.messages || []);
         }
       } catch (_err) { /* ignore */ }
-    }, 4000);
-    return () => clearInterval(poll);
-  }, []);
+    };
 
-  useEffect(() => {
-    if (chatUser) {
-      fetch('/api/chat/messages')
-        .then(r => r.ok ? r.json() : { messages: [] })
-        .then(d => setMessages(d.messages || []))
-        .catch(() => {});
-    } else {
-      setMessages([]);
-    }
-  }, [chatUser]);
+    fetchMessages();
+    const poll = setInterval(fetchMessages, 1500); // 1.5s real-time interval
+    const handleSync = () => fetchMessages();
+    window.addEventListener('focus', handleSync);
+    document.addEventListener('visibilitychange', handleSync);
+
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener('focus', handleSync);
+      document.removeEventListener('visibilitychange', handleSync);
+    };
+  }, [chatUser, dmOpen]);
 
   useEffect(() => {
     if (chatBodyRef.current) chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
@@ -129,6 +135,15 @@ export default function ConnectPage() {
   const handleLogout = async () => {
     await fetch('/api/chat/auth', { method: 'DELETE' });
     setChatUser(null);
+    setMessages([]);
+  };
+
+  const handleClearChat = async () => {
+    if (!confirm('Clear all messages in your private thread?')) return;
+    try {
+      const res = await fetch('/api/chat/messages', { method: 'DELETE' });
+      if (res.ok) setMessages([]);
+    } catch (_err) { /* ignore */ }
   };
 
   const handleSend = async (e) => {
@@ -137,6 +152,17 @@ export default function ConnectPage() {
     if (!text || sending) return;
     setAuthError('');
     setSending(true);
+
+    // Optimistic real-time append
+    const optimistic = {
+      username: chatUser?.username || 'user',
+      from: 'user',
+      text,
+      at: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, optimistic]);
+    setDraft('');
+
     try {
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
@@ -149,8 +175,6 @@ export default function ConnectPage() {
         throw new Error('Your chat session expired. Please sign in again.');
       }
       if (!res.ok) throw new Error(data.error || 'Failed to send.');
-      setMessages(prev => [...prev, data.message]);
-      setDraft('');
     } catch (err) {
       setAuthError(err.message);
     } finally {
@@ -183,13 +207,64 @@ export default function ConnectPage() {
       </div>
 
       {/* ─── Direct Messages Chatbox (Placed Above) ─── */}
+      {!dmOpen ? (
+        <div className="chat-panel" style={{ marginBottom: '40px', padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+          <div>
+            <span style={{ fontSize: '10px', font: '800 10px "DM Mono", monospace', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Direct Channel (Closed)
+            </span>
+            <h3 style={{ margin: '4px 0 0', fontSize: '16px', font: '800 16px "Space Grotesk", sans-serif' }}>
+              Direct Messages with DRJ
+            </h3>
+            <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+              {chatUser ? `Thread active for ${chatUser.username}. Click Open DM to chat.` : 'Private thread closed. Click Open DM to authenticate and chat.'}
+            </p>
+          </div>
+          <button type="button" className="button" onClick={() => setDmOpen(true)} style={{ height: '36px', fontSize: '11px' }}>
+            <MessageCircle size={14} /> Open DM
+          </button>
+        </div>
+      ) : (
       <div className="chat-panel" style={{ marginBottom: '40px' }}>
         <div className="chat-head">
           <span className="chat-head-title"><MessageCircle size={16} /> Direct Messages with DRJ</span>
           <span className={`chat-status ${chatUser ? 'online' : ''}`}><span /> {chatUser ? 'Thread active' : 'Private channel'}</span>
           {chatUser && (
-            <button type="button" onClick={handleLogout}><LogOut size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: '-2px' }} />{chatUser.username} · Log out</button>
+            <>
+              <button
+                type="button"
+                onClick={handleClearChat}
+                title="Clear conversation history"
+                style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px', marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}
+              >
+                Clear
+              </button>
+              <button type="button" onClick={handleLogout} style={{ marginLeft: '8px' }}>
+                <LogOut size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: '-2px' }} />{chatUser.username} · Log out
+              </button>
+            </>
           )}
+          <button
+            type="button"
+            onClick={() => setDmOpen(false)}
+            title="Close DM"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'rgba(255,255,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.35)',
+              borderRadius: '6px',
+              padding: '4px 9px',
+              color: '#fff',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginLeft: chatUser ? '10px' : 'auto'
+            }}
+          >
+            <X size={12} /> Close DM
+          </button>
         </div>
 
         {chatChecking ? (
@@ -310,6 +385,7 @@ export default function ConnectPage() {
           </>
         )}
       </div>
+      )}
 
       {/* ─── Direct Email & Social Channels (Below) ─── */}
       <section className="connect" aria-labelledby="connect-subhead">

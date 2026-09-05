@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   User, Lock, Eye, EyeOff, ArrowRight, LogOut, Bookmark,
-  MessageCircle, Sparkles, AlertCircle, CheckCircle2, RefreshCw, Trash2
+  MessageCircle, Sparkles, AlertCircle, CheckCircle2, RefreshCw, Trash2,
+  Send, X
 } from 'lucide-react';
 
 function UserLoginPageContent() {
@@ -26,6 +27,14 @@ function UserLoginPageContent() {
   const [feedback, setFeedback] = useState('');
   const [savedItems, setSavedItems] = useState([]);
   const [googleConfigured, setGoogleConfigured] = useState(false);
+
+  // Chat in account states
+  const [dmOpen, setDmOpen] = useState(true);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatDraft, setChatDraft] = useState('');
+  const [chatSending, setChatSending] = useState(false);
+  const [chatError, setChatError] = useState('');
+  const chatBodyRef = React.useRef(null);
 
   // Read URL query errors/welcome
   useEffect(() => {
@@ -90,6 +99,80 @@ function UserLoginPageContent() {
   useEffect(() => {
     loadSession();
   }, []);
+
+  // Real-time chat polling in user account
+  useEffect(() => {
+    if (!user || !dmOpen) return;
+    const fetchMsgs = async () => {
+      try {
+        const res = await fetch('/api/chat/messages');
+        if (res.ok) {
+          const d = await res.json();
+          setChatMessages(d.messages || []);
+        }
+      } catch (_err) { /* ignore */ }
+    };
+    fetchMsgs();
+    const poll = setInterval(fetchMsgs, 1500); // 1.5s real-time
+    const handleSync = () => fetchMsgs();
+    window.addEventListener('focus', handleSync);
+    document.addEventListener('visibilitychange', handleSync);
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener('focus', handleSync);
+      document.removeEventListener('visibilitychange', handleSync);
+    };
+  }, [user, dmOpen]);
+
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleSendChat = async (e) => {
+    e.preventDefault();
+    const text = chatDraft.trim();
+    if (!text || chatSending) return;
+    setChatError('');
+    setChatSending(true);
+
+    // Optimistic real-time append
+    const optimistic = {
+      username: user.username,
+      from: 'user',
+      text,
+      at: new Date().toISOString()
+    };
+    setChatMessages(prev => [...prev, optimistic]);
+    setChatDraft('');
+
+    try {
+      const res = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (res.status === 401) {
+        setUser(null);
+        throw new Error('Your session expired. Please sign in again.');
+      }
+      if (!res.ok) throw new Error(data.error || 'Failed to send message.');
+    } catch (err) {
+      setChatError(err.message);
+    } finally {
+      setChatSending(false);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!confirm('Clear all messages in your private thread with DRJ?')) return;
+    try {
+      const res = await fetch('/api/chat/messages', { method: 'DELETE' });
+      if (res.ok) setChatMessages([]);
+    } catch (_err) { /* ignore */ }
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -181,25 +264,111 @@ function UserLoginPageContent() {
         )}
 
         <div style={{ display: 'grid', gap: '20px' }}>
-          {/* Quick sync card */}
-          <div style={{ border: '1px solid var(--line)', borderRadius: '12px', padding: '22px', background: 'var(--bg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <span style={{ fontSize: '10px', font: '800 10px "DM Mono", monospace', color: 'var(--accent)', textTransform: 'uppercase' }}>
-                  Live Connection
-                </span>
-                <h3 style={{ margin: '4px 0 0', fontSize: '17px', font: '800 17px "Space Grotesk", sans-serif' }}>
-                  Messenger Chat Synced
-                </h3>
-                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
-                  Your private conversation with DRJ is active and synced to your credentials.
-                </p>
+          {/* ─── Direct Messages Chat Section ─── */}
+          {!dmOpen ? (
+            <div style={{ border: '1px solid var(--line)', borderRadius: '12px', padding: '20px 22px', background: 'var(--bg)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <span style={{ fontSize: '10px', font: '800 10px "DM Mono", monospace', color: 'var(--accent)', textTransform: 'uppercase' }}>
+                    Live Connection (Closed)
+                  </span>
+                  <h3 style={{ margin: '4px 0 0', fontSize: '17px', font: '800 17px "Space Grotesk", sans-serif' }}>
+                    Messenger Chat Synced
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+                    {chatMessages.length > 0 ? `${chatMessages.length} messages in conversation. Click to open DM.` : 'Your private conversation with DRJ is active and synced to your credentials.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDmOpen(true)}
+                  className="button"
+                  style={{ height: '38px', fontSize: '11px' }}
+                >
+                  <MessageCircle size={14} /> Open DM
+                </button>
               </div>
-              <Link href="/connect" className="button" style={{ height: '38px', fontSize: '11px' }}>
-                <MessageCircle size={14} /> Open Private Chat
-              </Link>
             </div>
-          </div>
+          ) : (
+            <div className="chat-panel" style={{ marginTop: 0 }}>
+              <div className="chat-head">
+                <span className="chat-head-title"><MessageCircle size={15} /> Direct Messages with DRJ</span>
+                <span className="chat-status online"><span /> Thread active</span>
+                <button
+                  type="button"
+                  onClick={handleClearChat}
+                  title="Clear conversation history"
+                  style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px', marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDmOpen(false)}
+                  title="Close DM"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'rgba(255,255,255,0.18)',
+                    border: '1px solid rgba(255,255,255,0.35)',
+                    borderRadius: '6px',
+                    padding: '4px 9px',
+                    color: '#fff',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    marginLeft: '8px'
+                  }}
+                >
+                  <X size={12} /> Close DM
+                </button>
+              </div>
+
+              <div className="chat-body" ref={chatBodyRef}>
+                {chatMessages.length === 0 ? (
+                  <div className="chat-empty-state">
+                    <div className="chat-empty-icon"><MessageCircle size={20} /></div>
+                    <strong>Start your conversation</strong>
+                    <p>Send a direct message to DRJ. Messages are private and delivered in real-time.</p>
+                    <div className="chat-prompts">
+                      {['Hi DRJ! I reviewed your projects', 'I have a frontend opportunity', 'Can we collaborate on open-source?'].map((prompt) => (
+                        <button type="button" key={prompt} onClick={() => setChatDraft(prompt)}>{prompt}</button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  chatMessages.map((m, idx) => (
+                    <div className={`chat-bubble ${m.from === 'user' ? 'me' : 'them'}`} key={idx}>
+                      {m.text}
+                      <span className="chat-time">
+                        {m.from === 'admin' ? 'DRJ · ' : ''}
+                        {new Date(m.at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <form className="chat-form" onSubmit={handleSendChat}>
+                <input
+                  type="text"
+                  placeholder="Type a message to DRJ…"
+                  value={chatDraft}
+                  onChange={e => setChatDraft(e.target.value)}
+                  maxLength={2000}
+                />
+                <button type="submit" disabled={chatSending || !chatDraft.trim()}>
+                  <Send size={13} /> {chatSending ? 'Sending…' : 'Send'}
+                </button>
+              </form>
+              {chatError && <div className="chat-send-error" role="alert">{chatError}</div>}
+              <div className="chat-form-meta">
+                <span>Real-time private thread synced to {user.username}</span>
+                <span>{chatDraft.length}/2000</span>
+              </div>
+            </div>
+          )}
 
           {/* Saved items list */}
           <div style={{ border: '1px solid var(--line)', borderRadius: '12px', padding: '22px', background: 'var(--bg)' }}>

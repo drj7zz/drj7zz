@@ -5,7 +5,8 @@ import Link from 'next/link';
 import {
   FileText, FolderGit2, Link as LinkIcon, Database,
   LogOut, Plus, Trash2, Edit2, Save, CheckCircle2,
-  AlertCircle, RefreshCw, Eye, Code, Inbox, Send
+  AlertCircle, RefreshCw, Eye, Code, Inbox, Send,
+  X, MessageCircle
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -229,6 +230,26 @@ export default function AdminDashboardPage() {
     } catch (_err) { /* ignore */ }
   };
 
+  const closeThread = () => {
+    setActiveThread(null);
+    setThreadMessages([]);
+    setInboxDraft('');
+  };
+
+  const clearThread = async (username) => {
+    if (!confirm(`Are you sure you want to clear all messages with ${username}?`)) return;
+    try {
+      const res = await fetch(`/api/chat/messages?user=${encodeURIComponent(username)}`, { method: 'DELETE' });
+      if (res.ok) {
+        setThreadMessages([]);
+        loadThreads();
+        showFeedback('success', `Conversation with ${username} cleared.`);
+      }
+    } catch (_err) {
+      showFeedback('error', 'Failed to clear conversation.');
+    }
+  };
+
   const sendReply = async (e) => {
     e.preventDefault();
     const text = inboxDraft.trim();
@@ -238,6 +259,17 @@ export default function AdminDashboardPage() {
       showFeedback('error', 'Select a conversation before replying.');
       return;
     }
+
+    // Optimistic real-time UI append
+    const optimistic = {
+      username: recipient,
+      from: 'admin',
+      text,
+      at: new Date().toISOString()
+    };
+    setThreadMessages(prev => [...prev, optimistic]);
+    setInboxDraft('');
+
     try {
       const res = await fetch('/api/chat/messages', {
         method: 'POST',
@@ -246,8 +278,6 @@ export default function AdminDashboardPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send');
-      setThreadMessages(prev => [...prev, data.message]);
-      setInboxDraft('');
       loadThreads();
     } catch (err) {
       showFeedback('error', err.message);
@@ -257,13 +287,13 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (activeTab !== 'inbox') return;
     loadThreads();
-    const poll = setInterval(loadThreads, 5000);
+    const poll = setInterval(loadThreads, 3000);
     return () => clearInterval(poll);
   }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== 'inbox' || !activeThread) return;
-    const poll = setInterval(async () => {
+    const fetchActive = async () => {
       try {
         const res = await fetch(`/api/chat/messages?user=${encodeURIComponent(activeThread)}`);
         if (res.ok) {
@@ -271,8 +301,18 @@ export default function AdminDashboardPage() {
           setThreadMessages(data.messages || []);
         }
       } catch (_err) { /* ignore */ }
-    }, 4000);
-    return () => clearInterval(poll);
+    };
+    fetchActive();
+    // 1500ms real-time polling for open DM
+    const poll = setInterval(fetchActive, 1500);
+    const handleSync = () => { fetchActive(); loadThreads(); };
+    window.addEventListener('focus', handleSync);
+    document.addEventListener('visibilitychange', handleSync);
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener('focus', handleSync);
+      document.removeEventListener('visibilitychange', handleSync);
+    };
   }, [activeTab, activeThread]);
 
   React.useEffect(() => {
@@ -665,7 +705,39 @@ export default function AdminDashboardPage() {
             <div className="inbox-chat">
               {activeThread ? (
                 <>
-                  <div className="chat-head">Chat with {activeThread}</div>
+                  <div className="chat-head">
+                    <span className="chat-head-title"><MessageCircle size={15} /> Chat with {activeThread}</span>
+                    <span className="chat-status online"><span /> Live</span>
+                    <button
+                      type="button"
+                      onClick={() => clearThread(activeThread)}
+                      title="Clear this conversation"
+                      style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px', marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}
+                    >
+                      <Trash2 size={11} style={{ display: 'inline', marginRight: '3px', verticalAlign: '-1px' }} /> Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeThread}
+                      title="Close DM"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'rgba(255,255,255,0.18)',
+                        border: '1px solid rgba(255,255,255,0.35)',
+                        borderRadius: '6px',
+                        padding: '4px 9px',
+                        color: '#fff',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        marginLeft: '8px'
+                      }}
+                    >
+                      <X size={12} /> Close DM
+                    </button>
+                  </div>
                   <div className="chat-body inbox-chat-body" key={chatTransitionKey} ref={inboxBodyRef}>
 
                     {threadMessages.map((m, idx) => (

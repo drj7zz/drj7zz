@@ -14,12 +14,21 @@ async function getSession() {
   return (await getAdminSession()) || (await getChatSession());
 }
 
+if (!global._memorySavedItems) {
+  global._memorySavedItems = [];
+}
+
 export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const db = await getDatabase();
-  if (!db) return NextResponse.json({ error: 'Database unavailable.' }, { status: 503 });
+  if (!db) {
+    const items = global._memorySavedItems
+      .filter(i => i.username === session.username)
+      .sort((a, b) => new Date(b.at) - new Date(a.at));
+    return NextResponse.json({ source: 'memory', items });
+  }
 
   const items = await db.collection('saved_items')
     .find({ username: session.username })
@@ -33,9 +42,6 @@ export async function GET() {
 export async function POST(request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const db = await getDatabase();
-  if (!db) return NextResponse.json({ error: 'Database unavailable.' }, { status: 503 });
 
   let body;
   try {
@@ -56,6 +62,17 @@ export async function POST(request) {
     at: new Date()
   };
 
+  const db = await getDatabase();
+  if (!db) {
+    const idx = global._memorySavedItems.findIndex(i => i.username === doc.username && i.id === doc.id);
+    if (idx >= 0) {
+      global._memorySavedItems[idx] = doc;
+    } else {
+      global._memorySavedItems.push(doc);
+    }
+    return NextResponse.json({ success: true, saved: true, source: 'memory' });
+  }
+
   await db.collection('saved_items').updateOne(
     { username: doc.username, id: doc.id },
     { $set: doc },
@@ -69,12 +86,15 @@ export async function DELETE(request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const db = await getDatabase();
-  if (!db) return NextResponse.json({ error: 'Database unavailable.' }, { status: 503 });
-
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id param.' }, { status: 400 });
+
+  const db = await getDatabase();
+  if (!db) {
+    global._memorySavedItems = global._memorySavedItems.filter(i => !(i.username === session.username && i.id === id));
+    return NextResponse.json({ success: true, saved: false, source: 'memory' });
+  }
 
   await db.collection('saved_items').deleteOne({ username: session.username, id });
   return NextResponse.json({ success: true, saved: false });

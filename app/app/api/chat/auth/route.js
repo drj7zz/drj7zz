@@ -4,7 +4,8 @@ import { cookies } from 'next/headers';
 import { getDatabase } from '@/lib/mongodb';
 import {
   CHAT_COOKIE, chatConfigured, createChatToken,
-  hashPassword, verifyPassword, getChatSession
+  hashPassword, verifyPassword, getChatSession,
+  getChatStores
 } from '@/lib/chat';
 
 /**
@@ -17,9 +18,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Chat auth is not configured (JWT_SECRET missing).' }, { status: 503 });
   }
   const db = await getDatabase();
-  if (!db) {
-    return NextResponse.json({ error: 'Database unavailable. Chat requires MongoDB.' }, { status: 503 });
-  }
+  const { users } = getChatStores(db);
 
   let body;
   try {
@@ -40,15 +39,13 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 });
   }
 
-  const users = db.collection('chat_users');
-
   if (action === 'register') {
     const existing = await users.findOne({ username });
     if (existing) {
       return NextResponse.json({ error: 'That username is already taken. Try logging in.' }, { status: 409 });
     }
     await users.insertOne({ username, passwordHash: hashPassword(password), createdAt: new Date() });
-    return issueSession(username, 'user', remember);
+    return await issueSession(username, 'user', remember);
   }
 
   if (action === 'login') {
@@ -56,19 +53,20 @@ export async function POST(request) {
     if (!user || !verifyPassword(password, user.passwordHash)) {
       return NextResponse.json({ error: 'Wrong username or password.' }, { status: 401 });
     }
-    return issueSession(username, 'user', remember);
+    return await issueSession(username, 'user', remember);
   }
 
   return NextResponse.json({ error: 'Unknown action.' }, { status: 400 });
 }
 
-function issueSession(username, role, remember) {
+async function issueSession(username, role, remember) {
   const token = createChatToken(username, role);
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set(CHAT_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
+    path: '/',
     ...(remember ? { maxAge: 60 * 60 * 24 * 30 } : {})
     // no maxAge → session cookie → "remember me" off
   });
@@ -81,7 +79,13 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  const cookieStore = cookies();
-  cookieStore.delete(CHAT_COOKIE);
+  const cookieStore = await cookies();
+  cookieStore.set(CHAT_COOKIE, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 0
+  });
   return NextResponse.json({ success: true });
 }

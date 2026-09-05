@@ -105,45 +105,6 @@ main { flex: 1; }
   z-index: 1;
 }
 
-/* Spinning ring around the nav profile image */
-.brand {
-  position: relative;
-}
-
-.brand::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from var(--nav-ring-angle, 0deg),
-    var(--line) 0%,
-    var(--line) 35%,
-    var(--accent) 65%,
-    #83e7f6 85%,
-    #ffffff 95%,
-    var(--line) 100%
-  );
-  animation: navRingSpin 3.5s linear infinite;
-  z-index: 0;
-  pointer-events: none;
-}
-
-@property --nav-ring-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes navRingSpin {
-  from { --nav-ring-angle: 0deg; }
-  to   { --nav-ring-angle: 360deg; }
-}
-
 
 .nav-controls {
   display: flex;
@@ -344,39 +305,40 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
 
 [data-theme="dark"] .hero-copy { color: #9db1cc; }
 
-/* ═══════════════════════ Border Angle Property ═══════════════════════ */
-@property --border-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
+/* ═══════════════════════ Lit Profile Animation (Hardware-Accelerated for Mobile & Desktop) ═══════════════════════ */
+@keyframes rotateBorderBeam {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(0, 0, 0) rotate(360deg);
+  }
 }
 
-@keyframes rotateBorderAngle {
-  0% {
-    --border-angle: 0deg;
+@keyframes rotateHalo {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
-  100% {
-    --border-angle: 360deg;
+  to {
+    transform: translate3d(0, 0, 0) rotate(360deg);
   }
 }
 
 @keyframes haloPulse {
   0%, 100% {
-    transform: scale(0.97);
     opacity: 0.6;
   }
   50% {
-    transform: scale(1.05);
     opacity: 0.92;
   }
 }
 
 @keyframes portraitFloat {
   0%, 100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
   50% {
-    transform: translateY(-7px);
+    transform: translate3d(0, -6px, 0);
   }
 }
 
@@ -406,20 +368,13 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
   border-radius: 50%;
   display: grid;
   place-items: center;
+  padding: 3px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   animation: portraitFloat 6s ease-in-out infinite;
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  padding: 3px;
-  background: conic-gradient(
-    from var(--border-angle, 0deg),
-    var(--line) 0%,
-    var(--line) 40%,
-    var(--accent) 70%,
-    #83e7f6 88%,
-    #ffffff 96%,
-    var(--line) 100%
-  );
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  animation: rotateBorderAngle 4.5s linear infinite, portraitFloat 6s ease-in-out infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .hero-portrait:hover .hero-portrait-frame {
@@ -427,13 +382,13 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18), 0 0 25px rgba(131, 231, 246, 0.35);
 }
 
-/* Ambient glowing halo behind the frame */
+/* Ambient glowing halo behind the frame - smooth GPU rotation and pulse */
 .hero-portrait-glow-halo {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
   background: conic-gradient(
-    from var(--border-angle, 0deg),
+    from 0deg,
     transparent 0%,
     transparent 50%,
     rgba(186, 65, 45, 0.3) 72%,
@@ -444,8 +399,11 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
   filter: blur(14px);
   opacity: 0.75;
   pointer-events: none;
-  animation: rotateBorderAngle 4.5s linear infinite, haloPulse 4s ease-in-out infinite;
+  animation: rotateHalo 4.5s linear infinite, haloPulse 4s ease-in-out infinite;
   transition: opacity 0.3s ease, filter 0.3s ease;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .hero-portrait:hover .hero-portrait-glow-halo {
@@ -453,13 +411,13 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
   filter: blur(18px);
 }
 
-/* Crisp rotating illuminated border beam */
+/* Crisp rotating illuminated border beam - hardware accelerated */
 .hero-portrait-border-line {
   position: absolute;
   inset: -2px;
   border-radius: 50%;
   background: conic-gradient(
-    from var(--border-angle, 0deg),
+    from 0deg,
     transparent 0%,
     transparent 35%,
     rgba(131, 231, 246, 0.4) 60%,
@@ -468,9 +426,12 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
     #ffffff 98%,
     transparent 100%
   );
-  animation: rotateBorderAngle 4.5s linear infinite;
+  animation: rotateBorderBeam 4.5s linear infinite;
   pointer-events: none;
   z-index: 1;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .hero-portrait:hover .hero-portrait-border-line {
@@ -607,7 +568,6 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
 @media (prefers-reduced-motion: reduce) {
   .hero-orbit, .hero-orbit-icon { animation: none; }
   .hero-portrait-frame, .hero-portrait-glow-halo, .hero-portrait-border-line { animation: none; }
-  .brand::before { animation: none; }
   .inbox-chat-body { animation: none; }
 }
 
@@ -1526,6 +1486,14 @@ html.theme-to-light::view-transition-new(root) { animation-name: theme-reveal-fr
   .hero h1#hero-title { font-size: 38px; line-height: 1.1; }
   .hero-portrait {
     --portrait-size: clamp(140px, 46vw, 175px);
+  }
+  .hero-portrait-glow-halo {
+    filter: blur(8px);
+    inset: -4px;
+    opacity: 0.65;
+  }
+  .hero-portrait-border-line {
+    inset: -1.5px;
   }
   .hero-orbit-icon { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
   .button, .email-action, .copy-email { min-height: 38px; padding: 0 10px; font-size: 10px; }
