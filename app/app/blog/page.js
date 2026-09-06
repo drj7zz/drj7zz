@@ -1,8 +1,7 @@
 'use client';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
-  Clock, ChevronDown, ChevronUp, RefreshCw, Bookmark, BookmarkCheck,
-  Search, X, Share2, Check, Copy, Sparkles, BookOpen
+  Clock, ChevronDown, ChevronUp, Search, X
 } from 'lucide-react';
 import { blogPosts as seedBlogs } from '../../lib/data';
 
@@ -245,156 +244,87 @@ export default function BlogPage() {
         </div>
       )}
 
-      <div className="blog-list">
-        {filteredBlogs.map((post) => {
-          const isExpanded = expandedId === post.id;
-          const isShareCopied = copiedShareId === post.id;
-          return (
-            <article className="blog-card" key={post.id} id={post.id}>
-              <div
-                className="blog-card-header"
-                onClick={() => togglePost(post.id)}
-                role="button"
-                tabIndex={0}
-                aria-expanded={isExpanded}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') togglePost(post.id); }}
-              >
+      {filteredBlogs.length > 0 && (
+        <article className="blog-featured" key={filteredBlogs[0].id} id={filteredBlogs[0].id}>
+          <div className="blog-featured-label">Latest Post</div>
+          <div className="blog-featured-meta">
+            <span>{filteredBlogs[0].date}</span>
+            <span className="blog-read-time"><Clock size={11} /> {filteredBlogs[0].readTime}</span>
+          </div>
+          <h3 className="blog-featured-title">{filteredBlogs[0].title}</h3>
+          <p className="blog-featured-excerpt">{filteredBlogs[0].excerpt}</p>
+          <div className="blog-featured-footer">
+            <div className="blog-tags">
+              {Array.isArray(filteredBlogs[0].tags) ? filteredBlogs[0].tags.map((tag) => (
+                <span className="blog-tag" key={tag}>{tag}</span>
+              )) : (
+                <span className="blog-tag">{filteredBlogs[0].tags}</span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="blog-read-btn"
+              onClick={() => togglePost(filteredBlogs[0].id)}
+            >
+              {expandedId === filteredBlogs[0].id ? (
+                <>Close Article <ChevronUp size={13} /></>
+              ) : (
+                <>Read Full Article <ChevronDown size={13} /></>
+              )}
+            </button>
+          </div>
+          {expandedId === filteredBlogs[0].id && (
+            <div className="blog-content blog-featured-content">
+              {filteredBlogs[0].content && filteredBlogs[0].content.split('\n\n').map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
+            </div>
+          )}
+        </article>
+      )}
+
+      {filteredBlogs.length > 1 && (
+        <div className="blog-grid">
+          {filteredBlogs.slice(1).map((post) => {
+            const isExpanded = expandedId === post.id;
+            return (
+              <article className="blog-card blog-card-grid" key={post.id} id={post.id}>
                 <div className="blog-card-meta">
                   <span>{post.date}</span>
-                  <span className="blog-read-time">
-                    <Clock size={11} /> {post.readTime}
-                  </span>
+                  <span className="blog-read-time"><Clock size={11} /> {post.readTime}</span>
                 </div>
                 <h3>{post.title}</h3>
                 <p className="blog-excerpt">{post.excerpt}</p>
-                <div className="blog-card-footer">
-                  <div className="blog-tags">
-                    {Array.isArray(post.tags) ? post.tags.map((tag) => (
-                      <span className="blog-tag" key={tag}>{tag}</span>
-                    )) : (
-                      <span className="blog-tag">{post.tags}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={(e) => sharePost(e, post)}
-                      title="Copy link to note"
-                      aria-label="Share note link"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 10px',
-                        border: '1px solid var(--line)',
-                        borderRadius: '4px',
-                        color: isShareCopied ? '#40c463' : 'var(--muted)',
-                        borderColor: isShareCopied ? '#40c463' : 'var(--line)',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      {isShareCopied ? <><Check size={12} /> Copied</> : <><Share2 size={12} /> Share</>}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => toggleSave(e, post)}
-                      disabled={savingId === post.id}
-                      title={savedIds.has(post.id) ? 'Remove bookmark' : 'Save note to account'}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 10px',
-                        border: '1px solid var(--line)',
-                        borderRadius: '4px',
-                        color: savedIds.has(post.id) ? 'var(--accent)' : 'var(--muted)',
-                        borderColor: savedIds.has(post.id) ? 'var(--accent)' : 'var(--line)',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      {savedIds.has(post.id) ? (
-                        <><BookmarkCheck size={13} /> Saved</>
-                      ) : (
-                        <><Bookmark size={13} /> Save</>
-                      )}
-                    </button>
-
-                    <span className="blog-toggle">
-                      {isExpanded ? (
-                        <>Collapse <ChevronUp size={13} /></>
-                      ) : (
-                        <>Read note <ChevronDown size={13} /></>
-                      )}
-                    </span>
-                  </div>
+                <div className="blog-tags">
+                  {Array.isArray(post.tags) ? post.tags.map((tag) => (
+                    <span className="blog-tag" key={tag}>{tag}</span>
+                  )) : (
+                    <span className="blog-tag">{post.tags}</span>
+                  )}
                 </div>
-              </div>
-
-              {isExpanded && (
-                <div className="blog-content">
-                  {post.content && post.content.split('\n\n').map((paragraph, idx) => {
-                    if (paragraph.startsWith('```')) {
-                      const langMatch = paragraph.match(/^```([a-zA-Z0-9]+)?/);
-                      const lang = langMatch && langMatch[1] ? langMatch[1] : 'code';
-                      const codeText = paragraph.replace(/```[a-zA-Z0-9]*\n?/g, '').trim();
-                      const snippetKey = `${post.id}-snip-${idx}`;
-                      const isCopied = copiedCodeId === snippetKey;
-
-                      return (
-                        <div className="code-block-wrapper" key={idx}>
-                          <div className="code-block-header">
-                            <span>{lang}</span>
-                            <button
-                              type="button"
-                              className={`code-copy-btn ${isCopied ? 'copied' : ''}`}
-                              onClick={() => copySnippet(codeText, snippetKey)}
-                              aria-label="Copy snippet to clipboard"
-                            >
-                              {isCopied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
-                            </button>
-                          </div>
-                          <pre>
-                            <code>{codeText}</code>
-                          </pre>
-                        </div>
-                      );
-                    }
-                    if (paragraph.startsWith('**')) {
-                      const parts = paragraph.split('**');
-                      return (
-                        <p key={idx}>
-                          <strong>{parts[1]}</strong> {parts.slice(2).join('')}
-                        </p>
-                      );
-                    }
-                    return <p key={idx}>{paragraph}</p>;
-                  })}
-
-                  <div className="blog-collapse-footer">
-                    <button
-                      type="button"
-                      className="blog-collapse-btn"
-                      onClick={() => togglePost(post.id)}
-                    >
-                      Close Note <ChevronUp size={13} />
-                    </button>
+                <button
+                  type="button"
+                  className="blog-read-btn"
+                  onClick={() => togglePost(post.id)}
+                >
+                  {isExpanded ? (
+                    <>Close Article <ChevronUp size={13} /></>
+                  ) : (
+                    <>Read Article <ChevronDown size={13} /></>
+                  )}
+                </button>
+                {isExpanded && (
+                  <div className="blog-content">
+                    {post.content && post.content.split('\n\n').map((paragraph, idx) => (
+                      <p key={idx}>{paragraph}</p>
+                    ))}
                   </div>
-                </div>
-              )}
-            </article>
-          );
-        })}
-      </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

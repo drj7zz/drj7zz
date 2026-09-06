@@ -1,6 +1,6 @@
 export default function sitemap() {
   const baseUrl = 'https://giridirghraj.vercel.app';
-  const routes = ['', '/about', '/skills', '/career', '/projects', '/blog', '/github', '/connect'];
+  const routes = ['', '/about', '/work', '/blog', '/connect'];
 
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,

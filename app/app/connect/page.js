@@ -185,47 +185,44 @@ export default function ConnectPage() {
   const usePrompt = (prompt) => setDraft(prompt);
 
   const copyEmail = async () => {
+    const emailLink = links.find((l) => l.url && l.url.startsWith('mailto:'))?.url || '';
+    const email = emailLink.replace('mailto:', '');
+    if (!email) return;
     try {
-      await navigator.clipboard.writeText('giridirghraj@gmail.com');
+      await navigator.clipboard.writeText(email);
       setEmailCopied(true);
       setTimeout(() => setEmailCopied(false), 2200);
     } catch (_err) {
-      window.location.href = 'mailto:giridirghraj@gmail.com';
+      if (emailLink) window.location.href = emailLink;
     }
   };
 
   return (
     <div className="connect-wrapper">
-      <div className="connect-header" style={{ marginBottom: '28px' }}>
+      <header className="connect-header">
         <p className="section-label">07 / Contact &amp; Connect</p>
-        <h2 id="connect-title" style={{ margin: '0 0 8px', font: '700 clamp(24px, 3.5vw, 34px) / 1.15 Sora, sans-serif', color: 'var(--ink)' }}>
-          Let us build something impactful.
-        </h2>
-        <p style={{ margin: 0, color: 'var(--muted)', fontSize: '14px', lineHeight: 1.6, maxWidth: '640px' }}>
+        <h2 id="connect-title">Let us build something impactful.</h2>
+        <p className="connect-lede">
           Available for frontend engineering opportunities, contract work, open-source initiatives, and technical consulting.
         </p>
-      </div>
+      </header>
 
       {/* ─── Direct Messages Chatbox (Placed Above) ─── */}
       {!dmOpen ? (
-        <div className="chat-panel" style={{ marginBottom: '40px', padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        <div className="chat-panel chat-panel-closed">
           <div>
-            <span style={{ fontSize: '10px', font: '800 10px "DM Mono", monospace', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Direct Channel (Closed)
-            </span>
-            <h3 style={{ margin: '4px 0 0', fontSize: '16px', font: '800 16px "Space Grotesk", sans-serif' }}>
-              Direct Messages with DRJ
-            </h3>
-            <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+            <span className="chat-closed-label">Direct Channel (Closed)</span>
+            <h3 className="chat-closed-title">Direct Messages with DRJ</h3>
+            <p className="chat-closed-sub">
               {chatUser ? `Thread active for ${chatUser.username}. Click Open DM to chat.` : 'Private thread closed. Click Open DM to authenticate and chat.'}
             </p>
           </div>
-          <button type="button" className="button" onClick={() => setDmOpen(true)} style={{ height: '36px', fontSize: '11px' }}>
+          <button type="button" className="button" onClick={() => setDmOpen(true)}>
             <MessageCircle size={14} /> Open DM
           </button>
         </div>
       ) : (
-      <div className="chat-panel" style={{ marginBottom: '40px' }}>
+      <div className="chat-panel">
         <div className="chat-head">
           <span className="chat-head-title"><MessageCircle size={16} /> Direct Messages with DRJ</span>
           <span className={`chat-status ${chatUser ? 'online' : ''}`}><span /> {chatUser ? 'Thread active' : 'Private channel'}</span>
@@ -387,31 +384,34 @@ export default function ConnectPage() {
       </div>
       )}
 
-      {/* ─── Direct Email & Social Channels (Below) ─── */}
-      <section className="connect" aria-labelledby="connect-subhead">
-        <div className="connect-orbit" aria-hidden="true">
-          <Radio size={20} />
-        </div>
-        <div className="connect-copy">
-          <p className="section-label">Direct Contact</p>
-          <h3 id="connect-subhead" style={{ margin: '0 0 6px', font: '700 20px Sora, sans-serif', color: 'var(--ink)' }}>
-            Email &amp; Messaging
-          </h3>
-          <p>Prefer direct email? Send a message or copy my address to get in touch directly.</p>
-          <div className="connect-actions">
-            <a className="email-action" href="mailto:giridirghraj@gmail.com">
-              <Mail size={13} /> Send an email
-            </a>
-            <button className="copy-email" type="button" onClick={copyEmail}>
-              {emailCopied ? (
-                <><Check size={13} style={{ color: 'var(--accent)' }} /> Email copied</>
-              ) : (
-                <><Copy size={13} /> Copy email</>
-              )}
-            </button>
+      {/* ─── Direct Contact — redesigned, login-style ─── */}
+      <section className="connect-direct" aria-labelledby="connect-subhead">
+        <div className="connect-direct-head">
+          <span className="connect-direct-icon"><Radio size={18} /></span>
+          <div>
+            <h3 id="connect-subhead">Direct Contact</h3>
+            <p>Email works best — send a message or copy my address.</p>
           </div>
         </div>
-        <div className="socials" aria-label="Social links">
+
+        <div className="connect-direct-grid">
+          <a
+            className="connect-direct-card"
+            href={(() => links.find((l) => l.url && l.url.startsWith('mailto:'))?.url || '#')()}
+            aria-label="Send an email"
+          >
+            <Mail size={16} />
+            <span className="connect-direct-card-title">Send an email</span>
+            <span className="connect-direct-card-sub">Opens your mail client</span>
+          </a>
+          <button className="connect-direct-card" type="button" onClick={copyEmail}>
+            {emailCopied ? <Check size={16} /> : <Copy size={16} />}
+            <span className="connect-direct-card-title">{emailCopied ? 'Email copied' : 'Copy email'}</span>
+            <span className="connect-direct-card-sub">Paste it anywhere</span>
+          </button>
+        </div>
+
+        <div className="connect-socials-row" aria-label="Social links">
           {links.map(({ name, url, icon }) => (
             <a
               className="social"

@@ -122,9 +122,15 @@ export default function DashboardPage() {
     <>
       {/* ─── Hero Section ─── */}
       <section className="hero" aria-labelledby="hero-title">
-        <p className="eyebrow">DRJ7ZZ / Dirghraj Giri / Frontend Engineer / Nepal</p>
-        <h1 id="hero-title">
-          Interfaces with <span>clarity and intent.</span>
+        <p className="eyebrow">DRJ / Dirghraj Giri / Developer / Nepal</p>
+        <h1 id="hero-title" className="hero-title-banner">
+          <img
+            src="/assets/images/readme-banner.svg"
+            alt="Interfaces with clarity and intent."
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+          />
         </h1>
 
         <div className="hero-split">
@@ -173,7 +179,7 @@ export default function DashboardPage() {
               Welcome to the official developer portfolio of <strong>Dirghraj Giri</strong> (widely known as <strong>DRJ7ZZ</strong> or <strong>DRJ</strong>), a professional <strong>frontend developer</strong> and software engineer from Nepal. I specialize in designing and engineering accessible, standards-compliant web applications built with <strong>JavaScript</strong>, <strong>TypeScript</strong>, <strong>Next.js</strong>, and modern <strong>React</strong> architectures.
             </p>
             <p className="hero-copy">
-              Every digital interface I craft embodies <em>interfaces with clarity and intent</em> — ensuring visual precision, fast load speeds, resilient keyboard navigation, and seamless responsiveness across desktop computers, tablets, and mobile devices. Whether delivering modular UI systems or architecting high-velocity open-source tools with KAALYUG, my work is engineered for production-ready scale, maintainability, and search visibility.
+              Every digital interface I craft embodies <em>pixels with purpose and motion with meaning</em> — ensuring visual precision, fast load speeds, resilient keyboard navigation, and seamless responsiveness across desktop computers, tablets, and mobile devices. Whether delivering modular UI systems or architecting high-velocity open-source tools with KAALYUG, my work is engineered for production-ready scale, maintainability, and search visibility.
             </p>
             <div className="cta-row">
               <Link className="button" href="/about">
@@ -349,7 +355,7 @@ export default function DashboardPage() {
               Live engineering metrics, active repository code streams, and contribution frequency synchronized directly from GitHub.
             </p>
           </div>
-          <Link className="view-all-link" href="/github">
+          <Link className="view-all-link" href="/work">
             Full Activity <ArrowRight size={14} />
           </Link>
         </div>
@@ -517,7 +523,7 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--line)' }}>
-          <Link href="/projects" className="button" style={{ height: '38px', fontSize: '11px' }}>
+          <Link href="/work" className="button" style={{ height: '38px', fontSize: '11px' }}>
             Explore Featured Projects <ArrowRight size={13} />
           </Link>
           <Link href="/about" className="text-link" style={{ margin: 0, fontSize: '12px' }}>

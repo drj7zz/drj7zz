@@ -20,8 +20,8 @@ export default function NotFound() {
         <Link className="button" href="/">
           <Home size={14} /> Back to Overview
         </Link>
-        <Link className="button ghost" href="/projects">
-          <GitBranch size={14} /> View Projects
+        <Link className="button ghost" href="/work">
+          <GitBranch size={14} /> View Work
         </Link>
         <Link className="button ghost" href="/connect">
           <Mail size={14} /> Contact DRJ
@@ -31,13 +31,11 @@ export default function NotFound() {
       <div style={{ borderTop: '1px solid var(--line)', paddingTop: '24px', display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '11.5px', color: 'var(--muted)', fontFamily: 'DM Mono, monospace' }}>
         <Link href="/about" style={{ color: 'inherit' }}>About</Link>
         <span>·</span>
-        <Link href="/skills" style={{ color: 'inherit' }}>Skills</Link>
-        <span>·</span>
-        <Link href="/career" style={{ color: 'inherit' }}>Career</Link>
-        <span>·</span>
-        <Link href="/github" style={{ color: 'inherit' }}>GitHub</Link>
+        <Link href="/work" style={{ color: 'inherit' }}>Work</Link>
         <span>·</span>
         <Link href="/blog" style={{ color: 'inherit' }}>Notes</Link>
+        <span>·</span>
+        <Link href="/connect" style={{ color: 'inherit' }}>Connect</Link>
       </div>
     </section>
   );
