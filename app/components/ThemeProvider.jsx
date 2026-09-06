@@ -2,19 +2,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext({
-  theme: 'light',
-  toggleTheme: () => {}
+  theme: 'maximalist',
+  themes: ['maximalist', 'claude', 'dark', 'neon', 'glass', 'paper'],
+  setTheme: () => {}
 });
 
+const THEMES = ['maximalist', 'claude', 'dark', 'neon', 'glass', 'paper'];
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light');
+  const [theme, setThemeState] = useState('maximalist');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Default to 'light' theme
+    // Default to 'maximalist' theme
     const saved = localStorage.getItem('drj-theme');
-    const initial = saved || 'light';
-    setTheme(initial);
+    const initial = THEMES.includes(saved) ? saved : 'maximalist';
+    setThemeState(initial);
     document.documentElement.setAttribute('data-theme', initial);
     setMounted(true);
 
@@ -40,12 +43,12 @@ export function ThemeProvider({ children }) {
     };
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+  const setTheme = (nextTheme) => {
+    if (!THEMES.includes(nextTheme)) return;
     const root = document.documentElement;
     const directionClass = nextTheme === 'dark' ? 'theme-to-dark' : 'theme-to-light';
     const applyTheme = () => {
-      setTheme(nextTheme);
+      setThemeState(nextTheme);
       root.setAttribute('data-theme', nextTheme);
       localStorage.setItem('drj-theme', nextTheme);
     };
@@ -68,8 +71,13 @@ export function ThemeProvider({ children }) {
     });
   };
 
+  const cycleTheme = () => {
+    const idx = THEMES.indexOf(theme);
+    setTheme(THEMES[(idx + 1) % THEMES.length]);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
+    <ThemeContext.Provider value={{ theme, themes: THEMES, cycleTheme, setTheme, mounted }}>
       {children}
     </ThemeContext.Provider>
   );

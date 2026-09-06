@@ -1,31 +1,34 @@
 'use client';
 import React from 'react';
 import { useTheme } from './ThemeProvider';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Palette } from 'lucide-react';
+
+const THEME_META = {
+  maximalist: { icon: Sun, label: 'Maximalist (light) — switch to Claude theme' },
+  claude: { icon: Palette, label: 'Claude (warm light) — switch to dark theme' },
+  dark: { icon: Moon, label: 'Dark — switch to Maximalist theme' }
+};
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme, mounted } = useTheme();
+  const { theme, cycleTheme, mounted } = useTheme();
 
   if (!mounted) {
     return <div className="theme-toggle-skeleton" />;
   }
 
-  const isDark = theme === 'dark';
+  const meta = THEME_META[theme] || THEME_META.maximalist;
+  const Icon = meta.icon;
 
   return (
     <button
-      className={`theme-toggle ${isDark ? 'dark' : 'light'}`}
+      className={`theme-toggle theme-${theme}`}
       type="button"
-      onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark blue theme'}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark blue theme'}
+      onClick={cycleTheme}
+      aria-label={meta.label}
+      title={meta.label}
     >
       <div className="theme-icon-container">
-        {isDark ? (
-          <Moon className="theme-icon moon" size={16} strokeWidth={2.2} />
-        ) : (
-          <Sun className="theme-icon sun" size={16} strokeWidth={2.2} />
-        )}
+        <Icon className={`theme-icon ${theme}`} size={16} strokeWidth={2.2} />
       </div>
     </button>
   );

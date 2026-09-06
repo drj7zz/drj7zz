@@ -2,16 +2,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import ThemeToggle from './ThemeToggle';
+import ThemePicker from './ThemePicker';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard' },
   { href: '/about', label: 'About' },
-  { href: '/skills', label: 'Focus' },
-  { href: '/career', label: 'Career' },
-  { href: '/projects', label: 'Projects' },
+  { href: '/work', label: 'Work' },
   { href: '/blog', label: 'Blog' },
-  { href: '/github', label: 'GitHub' },
   { href: '/connect', label: 'Connect' },
   { href: '/login', label: 'Login' },
   { href: '/admin/login', label: 'Admin' }
@@ -52,7 +49,7 @@ export default function Nav() {
           })}
         </nav>
         <div className="nav-theme-wrap">
-          <ThemeToggle />
+          <ThemePicker />
         </div>
       </div>
     </header>
