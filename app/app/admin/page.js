@@ -6,7 +6,7 @@ import {
   FileText, FolderGit2, Link as LinkIcon, Database,
   LogOut, Plus, Trash2, Edit2, Save, CheckCircle2,
   AlertCircle, RefreshCw, Eye, Code, Inbox, Send,
-  X, MessageCircle
+  X, MessageCircle, User as UserIcon
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -29,6 +29,18 @@ export default function AdminDashboardPage() {
   // Form states (Project)
   const [projectForm, setProjectForm] = useState({ name: '', description: '', stack: 'JavaScript', code: '', live: '', order: 0 });
   const [editingProjectName, setEditingProjectName] = useState(null);
+
+  // Form states (Profile / About)
+  const [profileForm, setProfileForm] = useState({
+    headline: '',
+    intro: '',
+    kaalyugNote: '',
+    focusTitle: '',
+    focusIntro: '',
+    careerTitle: '',
+    careerIntro: '',
+    availability: ''
+  });
 
   // Chat inbox states
   const [threads, setThreads] = useState([]);
@@ -60,19 +72,33 @@ export default function AdminDashboardPage() {
 
   const loadAllData = async () => {
     try {
-      const [resBlogs, resProjects, resInfo] = await Promise.all([
+      const [resBlogs, resProjects, resInfo, resProfile] = await Promise.all([
         fetch('/api/blogs'),
         fetch('/api/projects'),
-        fetch('/api/site-info')
+        fetch('/api/site-info'),
+        fetch('/api/profile')
       ]);
 
       const dataBlogs = await resBlogs.json();
       const dataProjects = await resProjects.json();
       const dataInfo = await resInfo.json();
+      const dataProfile = await resProfile.json();
 
       setBlogs(dataBlogs.data || []);
       setProjects(dataProjects.data || []);
       setSiteInfo(dataInfo.data || { socialLinks: [], facts: [], heroSignals: [] });
+      if (dataProfile.data) {
+        setProfileForm({
+          headline: dataProfile.data.headline || '',
+          intro: dataProfile.data.intro || '',
+          kaalyugNote: dataProfile.data.kaalyugNote || '',
+          focusTitle: dataProfile.data.focusTitle || '',
+          focusIntro: dataProfile.data.focusIntro || '',
+          careerTitle: dataProfile.data.careerTitle || '',
+          careerIntro: dataProfile.data.careerIntro || '',
+          availability: dataProfile.data.availability || ''
+        });
+      }
       setSource(dataBlogs.source || 'seed');
     } catch (_err) {
       showFeedback('error', 'Error loading data from backend');
@@ -414,7 +440,8 @@ export default function AdminDashboardPage() {
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--line)', marginBottom: '32px' }}>
         {[
           { id: 'blogs', label: `Blogs (${blogs.length})`, icon: FileText },
-          { id: 'projects', label: `Projects (${projects.length})`, icon: FolderGit2 },
+          { id: 'projects', label: `Repos & Demos (${projects.length})`, icon: FolderGit2 },
+          { id: 'profile', label: 'About & Profile', icon: UserIcon },
           { id: 'inbox', label: `Inbox (${threads.length})`, icon: Inbox },
           { id: 'info', label: 'Site Links & Info', icon: LinkIcon }
         ].map(tab => {
@@ -555,12 +582,12 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* ─── TAB 2: PROJECTS MANAGER ─── */}
+      {/* ─── TAB 2: LIVE REPOSITORIES & DEMOS MANAGER ─── */}
       {activeTab === 'projects' && (
         <div style={{ display: 'grid', gap: '40px' }}>
           <div style={{ border: '1px solid var(--line)', padding: '24px', borderRadius: '8px' }}>
             <h3 style={{ margin: '0 0 16px', font: '800 16px Space Grotesk, sans-serif' }}>
-              {editingProjectName ? `Edit Project (${editingProjectName})` : 'Add Selected Project'}
+              {editingProjectName ? `Edit Live Repo & Demo (${editingProjectName})` : 'Add Live Repository with Source & Live Demo'}
             </h3>
 
             <form onSubmit={handleSaveProject} style={{ display: 'grid', gap: '16px' }}>
@@ -637,7 +664,7 @@ export default function AdminDashboardPage() {
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="submit" className="button">
-                  <Save size={13} /> {editingProjectName ? 'Update Project' : 'Add Project'}
+                  <Save size={13} /> {editingProjectName ? 'Update Repository' : 'Add Live Repository'}
                 </button>
                 {editingProjectName && (
                   <button
@@ -653,7 +680,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <h3 style={{ margin: '0 0 16px', font: '800 16px Space Grotesk, sans-serif' }}>Projects List</h3>
+            <h3 style={{ margin: '0 0 16px', font: '800 16px Space Grotesk, sans-serif' }}>Live Repositories &amp; Demos List</h3>
             <div className="project-list">
               {projects.map((proj, idx) => (
                 <div key={proj.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid var(--line)', gap: '16px' }}>
@@ -674,6 +701,120 @@ export default function AdminDashboardPage() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ─── TAB: PROFILE & ABOUT MANAGER ─── */}
+      {activeTab === 'profile' && (
+        <div style={{ border: '1px solid var(--line)', padding: '24px', borderRadius: '8px' }}>
+          <h3 style={{ margin: '0 0 8px', font: '800 16px Space Grotesk, sans-serif' }}>About &amp; Profile Manager</h3>
+          <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>
+            Customize the editorial copy, focus intro, career statement, and availability displayed on the merged <strong>/about</strong> page.
+          </p>
+
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              const res = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(profileForm)
+              });
+              if (!res.ok) throw new Error('Failed to update profile');
+              showFeedback('success', 'Profile & About content updated successfully!');
+            } catch (err) {
+              showFeedback('error', err.message);
+            }
+          }} style={{ display: 'grid', gap: '18px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Headline</label>
+              <input
+                type="text"
+                value={profileForm.headline}
+                onChange={e => setProfileForm({ ...profileForm, headline: e.target.value })}
+                required
+                style={{ width: '100%', height: '40px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Introduction (About)</label>
+              <textarea
+                rows={3}
+                value={profileForm.intro}
+                onChange={e => setProfileForm({ ...profileForm, intro: e.target.value })}
+                required
+                style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>KAALYUG Note</label>
+              <textarea
+                rows={2}
+                value={profileForm.kaalyugNote}
+                onChange={e => setProfileForm({ ...profileForm, kaalyugNote: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Focus Title</label>
+                <input
+                  type="text"
+                  value={profileForm.focusTitle}
+                  onChange={e => setProfileForm({ ...profileForm, focusTitle: e.target.value })}
+                  style={{ width: '100%', height: '40px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Availability CTA</label>
+                <input
+                  type="text"
+                  value={profileForm.availability}
+                  onChange={e => setProfileForm({ ...profileForm, availability: e.target.value })}
+                  style={{ width: '100%', height: '40px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Technical Focus Intro</label>
+              <textarea
+                rows={2}
+                value={profileForm.focusIntro}
+                onChange={e => setProfileForm({ ...profileForm, focusIntro: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Engineering Approach Title</label>
+              <input
+                type="text"
+                value={profileForm.careerTitle}
+                onChange={e => setProfileForm({ ...profileForm, careerTitle: e.target.value })}
+                style={{ width: '100%', height: '40px', padding: '0 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>Engineering Approach Description</label>
+              <textarea
+                rows={2}
+                value={profileForm.careerIntro}
+                onChange={e => setProfileForm({ ...profileForm, careerIntro: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', background: 'transparent', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--ink)', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div>
+              <button type="submit" className="button">
+                <Save size={13} /> Save Profile &amp; About
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
