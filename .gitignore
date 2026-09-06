@@ -46,3 +46,6 @@ ui-check.png
 !**/.env.example
 *.pem
 *.key
+
+*.log
+dev.log
