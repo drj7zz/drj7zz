@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
-  Clock, ChevronDown, ChevronUp, Search, X
+  Clock, ChevronDown, ChevronUp, Search, X, Share2, Check, Copy, Bookmark, BookmarkCheck
 } from 'lucide-react';
 import { blogPosts as seedBlogs } from '../../lib/data';
 
@@ -90,6 +90,37 @@ export default function BlogPage() {
 
   const togglePost = (id) => {
     setExpandedId(expandedId === id ? null : id);
+  };
+
+  const renderPostActions = (post) => {
+    const isShareCopied = copiedShareId === post.id;
+    return (
+      <>
+        <button
+          type="button"
+          className="blog-action-btn"
+          onClick={(e) => sharePost(e, post)}
+          title="Copy link to article"
+          aria-label="Share article link"
+        >
+          {isShareCopied ? <><Check size={12} /> Copied</> : <><Share2 size={12} /> Share</>}
+        </button>
+        <button
+          type="button"
+          className={`blog-action-btn ${savedIds.has(post.id) ? 'saved' : ''}`}
+          onClick={(e) => toggleSave(e, post)}
+          disabled={savingId === post.id}
+          title={savedIds.has(post.id) ? 'Remove bookmark' : 'Save article to account'}
+          aria-label={savedIds.has(post.id) ? 'Remove bookmark' : 'Save article'}
+        >
+          {savedIds.has(post.id) ? (
+            <><BookmarkCheck size={13} /> Saved</>
+          ) : (
+            <><Bookmark size={13} /> Save</>
+          )}
+        </button>
+      </>
+    );
   };
 
   useEffect(() => {
@@ -261,17 +292,20 @@ export default function BlogPage() {
                 <span className="blog-tag">{filteredBlogs[0].tags}</span>
               )}
             </div>
-            <button
-              type="button"
-              className="blog-read-btn"
-              onClick={() => togglePost(filteredBlogs[0].id)}
-            >
-              {expandedId === filteredBlogs[0].id ? (
-                <>Close Article <ChevronUp size={13} /></>
-              ) : (
-                <>Read Full Article <ChevronDown size={13} /></>
-              )}
-            </button>
+            <div className="blog-featured-actions">
+              {renderPostActions(filteredBlogs[0])}
+              <button
+                type="button"
+                className="blog-read-btn"
+                onClick={() => togglePost(filteredBlogs[0].id)}
+              >
+                {expandedId === filteredBlogs[0].id ? (
+                  <>Close Article <ChevronUp size={13} /></>
+                ) : (
+                  <>Read Full Article <ChevronDown size={13} /></>
+                )}
+              </button>
+            </div>
           </div>
           {expandedId === filteredBlogs[0].id && (
             <div className="blog-content blog-featured-content">
@@ -302,17 +336,20 @@ export default function BlogPage() {
                     <span className="blog-tag">{post.tags}</span>
                   )}
                 </div>
-                <button
-                  type="button"
-                  className="blog-read-btn"
-                  onClick={() => togglePost(post.id)}
-                >
-                  {isExpanded ? (
-                    <>Close Article <ChevronUp size={13} /></>
-                  ) : (
-                    <>Read Article <ChevronDown size={13} /></>
-                  )}
-                </button>
+                <div className="blog-card-actions">
+                  {renderPostActions(post)}
+                  <button
+                    type="button"
+                    className="blog-read-btn"
+                    onClick={() => togglePost(post.id)}
+                  >
+                    {isExpanded ? (
+                      <>Close Article <ChevronUp size={13} /></>
+                    ) : (
+                      <>Read Article <ChevronDown size={13} /></>
+                    )}
+                  </button>
+                </div>
                 {isExpanded && (
                   <div className="blog-content">
                     {post.content && post.content.split('\n\n').map((paragraph, idx) => (
